@@ -3,11 +3,12 @@ package game
 import (
 	"bufio"
 	"bytes"
+	"math/rand"
 	"strings"
 	"testing"
 )
 
-func TestHandleInputUnknow(t *testing.T) {
+func TestHandleInputUnknown(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
@@ -112,6 +113,7 @@ func TestHandleInputMove(t *testing.T) {
 			var buf bytes.Buffer
 			game := New()
 			game.out = &buf
+			game.rng = rand.New(rand.NewSource(42))
 			p := NewPlayer("Lemmy", God)
 			game.Player = p
 			reader := strings.NewReader(alwaysAttack)
@@ -132,5 +134,78 @@ func TestHandleInputMove(t *testing.T) {
 			}
 		})
 
+	}
+}
+
+func TestHandleInputInventory(t *testing.T) {
+	cases := []struct {
+		name    string
+		command string
+		items   []string
+	}{
+		{"digit i", "i", []string{"Health Potion"}},
+		{"word inventory", "inventory", []string{"Health Potion"}},
+		{"empty inventory", "i", []string{}},
+	}
+
+	for _, c := range cases {
+		var buf bytes.Buffer
+		game := New()
+		game.Player = NewPlayer("test", Warrior)
+		game.out = &buf
+		game.running = true
+		game.Player.Items = c.items
+
+		game.handleInput(c.command)
+		output := buf.String()
+		if len(c.items) == 0 {
+			if !strings.Contains(output, "Your inventory is empty.") {
+				t.Errorf("input %q: expected empty inventory, got : %s", c.command, output)
+			}
+		} else {
+			if !strings.Contains(output, "Inventory:") {
+				t.Errorf("input %q: expected inventory, got : %s", c.command, output)
+			}
+		}
+	}
+}
+
+func TestHandleInputStatus(t *testing.T) {
+	var buf bytes.Buffer
+	game := New()
+	game.Player = NewPlayer("test", Warrior)
+	game.out = &buf
+	game.running = true
+
+	game.handleInput("status")
+	output := buf.String()
+
+	if !strings.Contains(output, "=== CHARACTER SHEET ===") {
+		t.Errorf("expected stastus, got : %s", output)
+	}
+}
+
+func TestHandleInputHelp(t *testing.T) {
+	cases := []struct {
+		name    string
+		command string
+	}{
+		{"digit ?", "?"},
+		{"word help", "help"},
+	}
+
+	for _, c := range cases {
+		var buf bytes.Buffer
+		game := New()
+
+		game.out = &buf
+		game.running = true
+
+		game.handleInput(c.command)
+		output := buf.String()
+
+		if !strings.Contains(output, "Commands:") {
+			t.Errorf("input %q: expected help, got : %s", c.name, output)
+		}
 	}
 }

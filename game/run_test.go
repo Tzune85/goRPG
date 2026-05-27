@@ -3,6 +3,7 @@ package game
 import (
 	"bufio"
 	"bytes"
+	"math/rand"
 	"strings"
 	"testing"
 )
@@ -46,7 +47,8 @@ func TestRunPlayerDead(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("Hero\n2\nn\n" + strings.Repeat("2\n", 12))
+	game.rng = rand.New(rand.NewSource(42))
+	reader := strings.NewReader("Hero\n2\nn\n" + strings.Repeat("2\n", 15))
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 

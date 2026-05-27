@@ -18,6 +18,7 @@ type Game struct {
 	running bool
 	in      io.Reader
 	out     io.Writer
+	rng     *rand.Rand
 }
 
 func New() *Game {
@@ -28,6 +29,7 @@ func New() *Game {
 		running: false,
 		in:      os.Stdin,
 		out:     os.Stdout,
+		rng:     rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
@@ -166,8 +168,7 @@ func (g *Game) move(direction string) {
 	if next.EnemyName != "" && !next.Cleared {
 		enemy, found := NewEnemy(next.EnemyName)
 		if found {
-			rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-			won, completed := RunCombat(g.Player, &enemy, g.readLine, g.out, rng)
+			won, completed := RunCombat(g.Player, &enemy, g.readLine, g.out, g.rng)
 
 			if !completed {
 				return
