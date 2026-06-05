@@ -48,7 +48,7 @@ func TestShopBuyPotion(t *testing.T) {
 	var buf bytes.Buffer
 	p := &Player{Gold: 20, Items: []string{}}
 
-	RunShop(p, scriptedInput("1", "1", "3", "3"), &buf)
+	RunShop(p, scriptedInput("1", "1", "0", "3"), &buf)
 	currentGold := p.Gold
 
 	if currentGold != 10 {
@@ -63,7 +63,7 @@ func TestShopBuyPotionNoGold(t *testing.T) {
 	var buf bytes.Buffer
 	p := &Player{Gold: 0, Items: []string{}}
 
-	RunShop(p, scriptedInput("1", "1", "3", "3"), &buf)
+	RunShop(p, scriptedInput("1", "1", "0", "3"), &buf)
 	output := buf.String()
 
 	if !strings.Contains(output, "enough gold") {
@@ -78,7 +78,7 @@ func TestShopSellPotion(t *testing.T) {
 	var buf bytes.Buffer
 	p := &Player{Gold: 0, Items: []string{"Health Potion"}}
 
-	RunShop(p, scriptedInput("2", "1", "3", "3"), &buf)
+	RunShop(p, scriptedInput("2", "1", "0", "3"), &buf)
 	currentGold := p.Gold
 
 	if currentGold != 5 {
@@ -86,5 +86,39 @@ func TestShopSellPotion(t *testing.T) {
 	}
 	if len(p.Items) != 0 {
 		t.Error("expected NO Potion in inventory")
+	}
+}
+
+func TestShopSellItemNotOwned(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 0, Items: []string{"Health Potion"}}
+
+	// player has a potion but tries to sell item ID 2 (Vorpal Sword)
+	RunShop(p, scriptedInput("2", "2", "0", "3"), &buf)
+	output := buf.String()
+
+	if !strings.Contains(output, "don't have") {
+		t.Errorf("expected 'don't have' message, got: %s", output)
+	}
+	if p.Gold != 0 {
+		t.Errorf("expected 0 gold, got: %d", p.Gold)
+	}
+	if len(p.Items) != 1 {
+		t.Errorf("expected 1 item still in inventory, got: %d", len(p.Items))
+	}
+}
+
+func TestShopSellRemovesCorrectItem(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 0, Items: []string{"Health Potion", "Vorpal Sword +5"}}
+
+	// sell the sword (ID 2), potion should remain
+	RunShop(p, scriptedInput("2", "2", "0", "3"), &buf)
+
+	if len(p.Items) != 1 {
+		t.Errorf("expected 1 item remaining, got: %d", len(p.Items))
+	}
+	if p.Items[0] != "Health Potion" {
+		t.Errorf("expected Health Potion to remain, got: %s", p.Items[0])
 	}
 }

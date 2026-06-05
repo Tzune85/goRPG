@@ -51,7 +51,7 @@ func NewPlayer(name string, class Class) *Player {
 	case God:
 		p.Stats = Stats{HP: 1000, MaxHP: 1000}
 		p.Attack = 1000
-		p.Items = []string{"Health Potion", "Health Potion"}
+		p.Items = []string{"Health Potion", "Sword +1"}
 		p.Gold = 10000
 	}
 
