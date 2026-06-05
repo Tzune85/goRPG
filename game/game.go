@@ -21,6 +21,13 @@ type Game struct {
 	rng     *rand.Rand
 }
 
+var aliases = map[string]string{
+	"north": "north", "n": "north",
+	"south": "south", "s": "south",
+	"east": "east", "e": "east",
+	"west": "west", "w": "west",
+}
+
 func New() *Game {
 	return &Game{
 		World:   BuildWorld(),
@@ -154,6 +161,14 @@ func (g *Game) move(direction string) {
 		return
 	}
 
+	full, ok := aliases[direction]
+	if !ok {
+		fmt.Fprintf(g.out, "%s is not a direction.\n", direction)
+		return
+	}
+
+	direction = full
+
 	room := g.World[g.Current]
 	nextID, exists := room.Exits[direction]
 	if !exists {
@@ -164,6 +179,10 @@ func (g *Game) move(direction string) {
 	g.Current = nextID
 	next := g.World[nextID]
 	g.describeRoom()
+
+	if next.IsShop {
+		RunShop(g.Player, g.readLine, g.out)
+	}
 
 	if next.EnemyName != "" && !next.Cleared {
 		enemy, found := NewEnemy(next.EnemyName)

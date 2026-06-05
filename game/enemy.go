@@ -18,8 +18,10 @@ var catalog = []Enemy{
 	{Name: "Goblin", Stats: Stats{HP: 30, MaxHP: 30}, Attack: 8, XP: 20, Gold: 5, Tier: 1},
 	{Name: "Skeleton", Stats: Stats{HP: 45, MaxHP: 45}, Attack: 11, XP: 35, Gold: 8, Tier: 1},
 	{Name: "Zombie", Stats: Stats{HP: 35, MaxHP: 35}, Attack: 9, XP: 25, Gold: 6, Tier: 1},
+	{Name: "Giant Rat", Stats: Stats{HP: 25, MaxHP: 25}, Attack: 10, XP: 25, Gold: 6, Tier: 1},
 	{Name: "Orc Warrior", Stats: Stats{HP: 60, MaxHP: 60}, Attack: 14, XP: 50, Gold: 12, Tier: 2},
 	{Name: "Dark Knight", Stats: Stats{HP: 80, MaxHP: 80}, Attack: 18, XP: 80, Gold: 20, Tier: 2},
+	{Name: "Giant Spider", Stats: Stats{HP: 55, MaxHP: 55}, Attack: 15, XP: 60, Gold: 15, Tier: 2},
 	{Name: "Ancient Dragon", Stats: Stats{HP: 100, MaxHP: 100}, Attack: 25, XP: 200, Gold: 100, Tier: 3},
 }
 

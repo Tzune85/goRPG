@@ -10,6 +10,7 @@ type Room struct {
 	Items       []string
 	Cleared     bool
 	IsBoss      bool
+	IsShop      bool
 }
 
 func BuildWorld() map[string]*Room {
@@ -58,6 +59,7 @@ func BuildWorld() map[string]*Room {
 			Name:        "Dwarf's Shop",
 			Description: "Wedged improbably between crumbling dungeon walls is a cluttered merchant stall, lit by a cheerful lantern. A stout dwarf with a braided beard eyes you from behind a counter of peculiar wares. 'Coin talks, adventurer. Everything else walks.'",
 			Exits:       map[string]string{"east": "armory"},
+			IsShop:      true,
 		},
 	}
 }

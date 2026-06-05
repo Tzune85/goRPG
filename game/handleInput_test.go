@@ -80,6 +80,9 @@ func TestHandleInputMove(t *testing.T) {
 		{"go north", "go north", "entrance", "corridor", ""},
 		{"move north", "move north", "entrance", "corridor", ""},
 
+		{"move n", "move n", "entrance", "corridor", ""},
+		{"go n", "go n", "entrance", "corridor", ""},
+
 		{"alias s", "s", "corridor", "entrance", ""},
 		{"south complete", "south", "corridor", "entrance", ""},
 		{"go south", "go south", "corridor", "entrance", ""},
@@ -102,7 +105,7 @@ func TestHandleInputMove(t *testing.T) {
 		{"empty go", "go", "entrance", "entrance", "Move where?"},
 		{"empty move", "move", "entrance", "entrance", "Move where?"},
 
-		{"garbage direction", "go banana", "entrance", "entrance", "can't go"},
+		{"garbage direction", "go banana", "entrance", "entrance", "not a direction"},
 
 		{"uppercase NORTH", "NORTH", "entrance", "corridor", ""},
 		{"whitespace padded", "  north  ", "entrance", "corridor", ""},
