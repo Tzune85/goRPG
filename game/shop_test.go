@@ -44,6 +44,18 @@ func TestHasShop(t *testing.T) {
 
 }
 
+func TestShopOptionsUnknow(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 20, Items: []string{}}
+
+	RunShop(p, scriptedInput("test"), &buf)
+	output := buf.String()
+
+	if !strings.Contains(output, "Unknown") {
+		t.Errorf("expected unknown, got : %s", output)
+	}
+}
+
 func TestShopBuyPotion(t *testing.T) {
 	var buf bytes.Buffer
 	p := &Player{Gold: 20, Items: []string{}}
@@ -71,6 +83,114 @@ func TestShopBuyPotionNoGold(t *testing.T) {
 	}
 	if len(p.Items) != 0 {
 		t.Error("expected NO Potion in inventory")
+	}
+}
+
+func TestShopBuyUnknownString(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 20, Items: []string{}}
+
+	RunShop(p, scriptedInput("1", "test"), &buf)
+	output := buf.String()
+
+	if !strings.Contains(output, "Unknown") {
+		t.Errorf("expected unknown, got : %s", output)
+	}
+}
+
+func TestShopBuyUnknownNumber(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 20, Items: []string{}}
+
+	RunShop(p, scriptedInput("1", "99"), &buf)
+	output := buf.String()
+
+	if !strings.Contains(output, "Unknown") {
+		t.Errorf("expected unknown, got : %s", output)
+	}
+}
+
+func TestShopBuyVorpalSword(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 50, Attack: 5, Items: []string{}}
+
+	RunShop(p, scriptedInput("1", "2", "0", "3"), &buf)
+
+	if p.Attack != 10 {
+		t.Errorf("expected Attack 10, got %d", p.Attack)
+	}
+	if len(p.Items) == 0 || p.Items[0] != "Vorpal Sword +5" {
+		t.Error("expected Vorpal Sword in inventory")
+	}
+}
+
+func TestShopBuyRing(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Stats: Stats{HP: 5, MaxHP: 25}, Gold: 50, Items: []string{}}
+
+	RunShop(p, scriptedInput("1", "3", "0", "3"), &buf)
+
+	if p.HP != 25 {
+		t.Errorf("expected HP 25, got %d", p.HP)
+	}
+	if p.MaxHP != 45 {
+		t.Errorf("expected MaxHP 45, got %d", p.MaxHP)
+	}
+	if len(p.Items) == 0 || p.Items[0] != "Ring of Vitality" {
+		t.Error("expected Ring of Vitality in inventory")
+	}
+}
+
+func TestShopBuyShoes(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 500, hasShoes: false, Items: []string{}}
+
+	RunShop(p, scriptedInput("1", "4", "0", "3"), &buf)
+
+	if !p.hasShoes {
+		t.Errorf("expected hasShoes true, got %t", p.hasShoes)
+	}
+	if len(p.Items) == 0 || p.Items[0] != "Winged Shoes" {
+		t.Error("expected Winged Shoes in inventory")
+	}
+}
+
+//////////////////////////////////////////////////////////////
+///////////////// SELL
+
+func TestShopSellUnknownNumber(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 20, Items: []string{}}
+
+	RunShop(p, scriptedInput("2", "99"), &buf)
+	output := buf.String()
+
+	if !strings.Contains(output, "Unknown") {
+		t.Errorf("expected unknown, got : %s", output)
+	}
+}
+
+func TestShopSellUnknownString(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 20, Items: []string{}}
+
+	RunShop(p, scriptedInput("2", "test"), &buf)
+	output := buf.String()
+
+	if !strings.Contains(output, "Unknown") {
+		t.Errorf("expected unknown, got : %s", output)
+	}
+}
+
+func TestShopSellNothing(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 20, Items: []string{}}
+
+	RunShop(p, scriptedInput("2", "1", "0", "3"), &buf)
+	output := buf.String()
+
+	if !strings.Contains(output, "You don't have any items to sell!") {
+		t.Errorf("expected don't have any item, got : %s", output)
 	}
 }
 
@@ -120,5 +240,19 @@ func TestShopSellRemovesCorrectItem(t *testing.T) {
 	}
 	if p.Items[0] != "Health Potion" {
 		t.Errorf("expected Health Potion to remain, got: %s", p.Items[0])
+	}
+}
+
+func TestShopSellShoes(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Gold: 0, hasShoes: true, Items: []string{"Winged Shoes"}}
+
+	RunShop(p, scriptedInput("2", "4", "0", "3"), &buf)
+
+	if p.hasShoes {
+		t.Errorf("expected hasShoes false, got %t", p.hasShoes)
+	}
+	if len(p.Items) != 0 {
+		t.Error("expected NO Winged Shoes in inventory")
 	}
 }

@@ -82,6 +82,28 @@ func TestMoveCompleted(t *testing.T) {
 	}
 }
 
+func TestItemsNotPickedUpOnEscape(t *testing.T) {
+	g := New()
+	g.out = io.Discard
+	g.rng = rand.New(rand.NewSource(0)) // seed 0: first Intn(2)==0 → escape succeeds
+	g.Player = NewPlayer("Test", Warrior)
+	g.Current = "corridor"
+
+	reader := strings.NewReader("3\n")
+	g.in = reader
+	g.scanner = bufio.NewScanner(reader)
+
+	initialItems := len(g.Player.Items)
+	g.move("north") // enters armory, enemy present, player runs
+
+	if len(g.Player.Items) > initialItems {
+		t.Errorf("expected no new items after escape, got: %v", g.Player.Items)
+	}
+	if g.World["armory"].Items == nil {
+		t.Error("expected armory items to still be present after escape")
+	}
+}
+
 func TestMoveBoss(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()

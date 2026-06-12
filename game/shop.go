@@ -8,20 +8,24 @@ import (
 )
 
 type Item struct {
-	ID    int
-	Name  string
-	Price int
-	Apply func(p *Player, sign int)
+	ID          int
+	Name        string
+	Description string
+	Price       int
+	Modifier    func(p *Player, sign int)
 }
 
 var inventory = map[int]Item{
-	1: {ID: 1, Name: "Health Potion", Price: 10},
-	2: {ID: 2, Name: "Vorpal Sword +5", Price: 30, Apply: func(p *Player, sign int) {
+	1: {ID: 1, Name: "Health Potion", Description: "Heal 30 HP", Price: 10},
+	2: {ID: 2, Name: "Vorpal Sword +5", Description: "Add 5 to Attack", Price: 30, Modifier: func(p *Player, sign int) {
 		p.Attack += 5 * sign
 	}},
-	3: {ID: 3, Name: "Ring of Vitality (+20 HP)", Price: 25, Apply: func(p *Player, sign int) {
+	3: {ID: 3, Name: "Ring of Vitality", Description: "Add 20 HP", Price: 25, Modifier: func(p *Player, sign int) {
 		p.MaxHP += 20 * sign
 		p.HP += 20 * sign
+	}},
+	4: {ID: 4, Name: "Winged Shoes", Description: "You can always Run", Price: 20, Modifier: func(p *Player, sign int) {
+		p.hasShoes = sign > 0
 	}},
 }
 
@@ -52,6 +56,8 @@ func RunShop(p *Player, readLine func(string) (string, bool), out io.Writer) {
 func BuyShop(p *Player, readline func(string) (string, bool), out io.Writer) {
 	fmt.Fprintln(out)
 	for {
+		fmt.Fprintf(out, "You have: %d gold\n", p.Gold)
+		fmt.Fprintln(out)
 		ids := make([]int, 0, len(inventory))
 		for id := range inventory {
 			ids = append(ids, id)
@@ -61,6 +67,9 @@ func BuyShop(p *Player, readline func(string) (string, bool), out io.Writer) {
 		for _, id := range ids {
 			item := inventory[id]
 			fmt.Fprintf(out, "[%d] %s = %d Gold\n", id, item.Name, item.Price)
+			if item.Description != "" {
+				fmt.Fprintf(out, "\t(%s)\n", item.Description)
+			}
 		}
 		fmt.Fprintln(out, "[0] Back")
 		fmt.Fprintln(out)
@@ -95,8 +104,8 @@ func BuyShop(p *Player, readline func(string) (string, bool), out io.Writer) {
 		}
 		p.Gold -= item.Price
 		p.Items = append(p.Items, item.Name)
-		if item.Apply != nil {
-			item.Apply(p, +1)
+		if item.Modifier != nil {
+			item.Modifier(p, +1)
 		}
 		fmt.Fprintf(out, "Here your %s!\n", item.Name)
 		fmt.Fprintln(out)
@@ -156,8 +165,8 @@ func SellShop(p *Player, readline func(string) (string, bool), out io.Writer) {
 		i := slices.Index(p.Items, item.Name)
 		p.Items = append(p.Items[:i], p.Items[i+1:]...)
 		p.Gold += item.Price / 2
-		if item.Apply != nil {
-			item.Apply(p, -1)
+		if item.Modifier != nil {
+			item.Modifier(p, -1)
 		}
 		fmt.Fprintf(out, "Sold! You received %d Gold.\n", item.Price/2)
 		fmt.Fprintln(out)

@@ -29,6 +29,10 @@ func RunCombat(p *Player, e *Enemy, readLine func(string) (string, bool), out io
 			enemyAttack(e, p, out, rng)
 			fmt.Fprintln(out)
 		case "3", "run":
+			if p.hasShoes {
+				fmt.Fprintln(out, "You escaped!")
+				return false, true
+			}
 			if rng.Intn(2) == 0 {
 				fmt.Fprintln(out, "You escaped!")
 				return false, true

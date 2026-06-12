@@ -181,3 +181,26 @@ func TestPlayerCantEscape(t *testing.T) {
 		t.Errorf("Expected failed escape, got: %s", output)
 	}
 }
+
+func TestPlayerRunWithShoes(t *testing.T) {
+	var buf bytes.Buffer
+	p := &Player{Name: "Arthas", Stats: Stats{HP: 9999, MaxHP: 9999}, hasShoes: true}
+	e, _ := NewEnemy("Goblin")
+
+	called := false
+	run := func(_ string) (string, bool) {
+		if called {
+			return "", false // dopo il primo tentativo: stop
+		}
+		called = true
+		return "3", true
+	}
+
+	// seed 1: primo Intn(2) == 1 → escape fallisce
+	RunCombat(p, &e, run, &buf, rand.New(rand.NewSource(1)))
+	output := buf.String()
+
+	if !strings.Contains(output, "You escaped!") {
+		t.Errorf("Expected escaped, got: %s", output)
+	}
+}

@@ -14,13 +14,14 @@ const (
 
 type Player struct {
 	Stats
-	Name   string
-	Class  Class
-	Attack int
-	Gold   int
-	Level  int
-	XP     int
-	Items  []string
+	Name     string
+	Class    Class
+	Attack   int
+	Gold     int
+	Level    int
+	XP       int
+	Items    []string
+	hasShoes bool
 }
 
 func NewPlayer(name string, class Class) *Player {

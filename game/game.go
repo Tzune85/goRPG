@@ -212,7 +212,7 @@ func (g *Game) move(direction string) {
 		}
 	}
 
-	if len(next.Items) > 0 {
+	if len(next.Items) > 0 && (next.EnemyName == "" || next.Cleared) {
 		for _, item := range next.Items {
 			g.Player.Items = append(g.Player.Items, item)
 			fmt.Fprintf(g.out, "You found: %s!\n", item)
