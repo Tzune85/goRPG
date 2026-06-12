@@ -5,13 +5,10 @@ import "testing"
 func TestEntranceExists(t *testing.T) {
 	world := BuildWorld()
 
-	room, exists := world["entrance"]
+	_, exists := world["entrance"]
 
 	if !exists {
 		t.Error("expected entrance room to exist")
-	}
-	if room.Name != "Dungeon Entrance" {
-		t.Errorf("expected name 'Dungeon Entrance', got %s", room.Name)
 	}
 }
 

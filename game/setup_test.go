@@ -47,7 +47,7 @@ func TestSetupDefaultName(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("\n1\n")
+	reader := strings.NewReader("\n\n1\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -62,7 +62,7 @@ func TestSetupDescribeRoom(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("\n1\n")
+	reader := strings.NewReader("\n\n1\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -78,7 +78,7 @@ func TestSetupCreatePlayer(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("Hero\n1\n")
+	reader := strings.NewReader("1\nHero\n1\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 

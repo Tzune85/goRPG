@@ -29,11 +29,11 @@ func TestHandleInputQuit(t *testing.T) {
 	game.handleInput("quit")
 	output := buf.String()
 
-	if !strings.Contains(output, "Farewell") {
-		t.Errorf("expected farewell, got : %s", output)
+	if !strings.Contains(output, "Quitting") {
+		t.Errorf("expected guard, got : %s", output)
 	}
-	if game.running {
-		t.Error("expected running to be false after quit")
+	if !game.running {
+		t.Error("expected running to be true after guard")
 	}
 }
 
@@ -144,11 +144,11 @@ func TestHandleInputInventory(t *testing.T) {
 	cases := []struct {
 		name    string
 		command string
-		items   []string
+		items   []int
 	}{
-		{"digit i", "i", []string{"Health Potion"}},
-		{"word inventory", "inventory", []string{"Health Potion"}},
-		{"empty inventory", "i", []string{}},
+		{"digit i", "i", []int{1}},
+		{"word inventory", "inventory", []int{1}},
+		{"empty inventory", "i", []int{}},
 	}
 
 	for _, c := range cases {

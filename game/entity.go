@@ -3,7 +3,6 @@ package game
 type Entity interface {
 	IsAlive() bool
 	TakeDamage(amount int)
-	Status() string
 }
 
 type Stats struct {

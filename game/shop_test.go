@@ -46,9 +46,9 @@ func TestHasShop(t *testing.T) {
 
 func TestShopOptionsUnknow(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 20, Items: []string{}}
+	p := &Player{Gold: 20, Items: []int{}}
 
-	RunShop(p, scriptedInput("test"), &buf)
+	RunShop(p, scriptedInput("test"), &buf, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "Unknown") {
@@ -58,24 +58,24 @@ func TestShopOptionsUnknow(t *testing.T) {
 
 func TestShopBuyPotion(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 20, Items: []string{}}
+	p := &Player{Gold: 20, Items: []int{}}
 
-	RunShop(p, scriptedInput("1", "1", "0", "3"), &buf)
+	RunShop(p, scriptedInput("1", "1", "0", "3"), &buf, testTrans)
 	currentGold := p.Gold
 
 	if currentGold != 10 {
 		t.Errorf("expected 10 gold, got : %d", currentGold)
 	}
-	if len(p.Items) == 0 || p.Items[0] != "Health Potion" {
+	if len(p.Items) == 0 || p.Items[0] != 1 {
 		t.Error("expected Health Potion in inventory")
 	}
 }
 
 func TestShopBuyPotionNoGold(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 0, Items: []string{}}
+	p := &Player{Gold: 0, Items: []int{}}
 
-	RunShop(p, scriptedInput("1", "1", "0", "3"), &buf)
+	RunShop(p, scriptedInput("1", "1", "0", "3"), &buf, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "enough gold") {
@@ -88,9 +88,9 @@ func TestShopBuyPotionNoGold(t *testing.T) {
 
 func TestShopBuyUnknownString(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 20, Items: []string{}}
+	p := &Player{Gold: 20, Items: []int{}}
 
-	RunShop(p, scriptedInput("1", "test"), &buf)
+	RunShop(p, scriptedInput("1", "test"), &buf, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "Unknown") {
@@ -100,9 +100,9 @@ func TestShopBuyUnknownString(t *testing.T) {
 
 func TestShopBuyUnknownNumber(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 20, Items: []string{}}
+	p := &Player{Gold: 20, Items: []int{}}
 
-	RunShop(p, scriptedInput("1", "99"), &buf)
+	RunShop(p, scriptedInput("1", "99"), &buf, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "Unknown") {
@@ -112,23 +112,23 @@ func TestShopBuyUnknownNumber(t *testing.T) {
 
 func TestShopBuyVorpalSword(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 50, Attack: 5, Items: []string{}}
+	p := &Player{Gold: 50, Attack: 5, Items: []int{}}
 
-	RunShop(p, scriptedInput("1", "2", "0", "3"), &buf)
+	RunShop(p, scriptedInput("1", "2", "0", "3"), &buf, testTrans)
 
 	if p.Attack != 10 {
 		t.Errorf("expected Attack 10, got %d", p.Attack)
 	}
-	if len(p.Items) == 0 || p.Items[0] != "Vorpal Sword +5" {
+	if len(p.Items) == 0 || p.Items[0] != 2 {
 		t.Error("expected Vorpal Sword in inventory")
 	}
 }
 
 func TestShopBuyRing(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Stats: Stats{HP: 5, MaxHP: 25}, Gold: 50, Items: []string{}}
+	p := &Player{Stats: Stats{HP: 5, MaxHP: 25}, Gold: 50, Items: []int{}}
 
-	RunShop(p, scriptedInput("1", "3", "0", "3"), &buf)
+	RunShop(p, scriptedInput("1", "3", "0", "3"), &buf, testTrans)
 
 	if p.HP != 25 {
 		t.Errorf("expected HP 25, got %d", p.HP)
@@ -136,21 +136,21 @@ func TestShopBuyRing(t *testing.T) {
 	if p.MaxHP != 45 {
 		t.Errorf("expected MaxHP 45, got %d", p.MaxHP)
 	}
-	if len(p.Items) == 0 || p.Items[0] != "Ring of Vitality" {
+	if len(p.Items) == 0 || p.Items[0] != 3 {
 		t.Error("expected Ring of Vitality in inventory")
 	}
 }
 
 func TestShopBuyShoes(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 500, hasShoes: false, Items: []string{}}
+	p := &Player{Gold: 500, hasShoes: false, Items: []int{}}
 
-	RunShop(p, scriptedInput("1", "4", "0", "3"), &buf)
+	RunShop(p, scriptedInput("1", "4", "0", "3"), &buf, testTrans)
 
 	if !p.hasShoes {
 		t.Errorf("expected hasShoes true, got %t", p.hasShoes)
 	}
-	if len(p.Items) == 0 || p.Items[0] != "Winged Shoes" {
+	if len(p.Items) == 0 || p.Items[0] != 4 {
 		t.Error("expected Winged Shoes in inventory")
 	}
 }
@@ -160,9 +160,9 @@ func TestShopBuyShoes(t *testing.T) {
 
 func TestShopSellUnknownNumber(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 20, Items: []string{}}
+	p := &Player{Gold: 20, Items: []int{}}
 
-	RunShop(p, scriptedInput("2", "99"), &buf)
+	RunShop(p, scriptedInput("2", "99"), &buf, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "Unknown") {
@@ -172,9 +172,9 @@ func TestShopSellUnknownNumber(t *testing.T) {
 
 func TestShopSellUnknownString(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 20, Items: []string{}}
+	p := &Player{Gold: 20, Items: []int{}}
 
-	RunShop(p, scriptedInput("2", "test"), &buf)
+	RunShop(p, scriptedInput("2", "test"), &buf, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "Unknown") {
@@ -184,9 +184,9 @@ func TestShopSellUnknownString(t *testing.T) {
 
 func TestShopSellNothing(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 20, Items: []string{}}
+	p := &Player{Gold: 20, Items: []int{}}
 
-	RunShop(p, scriptedInput("2", "1", "0", "3"), &buf)
+	RunShop(p, scriptedInput("2", "1", "0", "3"), &buf, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "You don't have any items to sell!") {
@@ -196,9 +196,9 @@ func TestShopSellNothing(t *testing.T) {
 
 func TestShopSellPotion(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 0, Items: []string{"Health Potion"}}
+	p := &Player{Gold: 0, Items: []int{1}}
 
-	RunShop(p, scriptedInput("2", "1", "0", "3"), &buf)
+	RunShop(p, scriptedInput("2", "1", "0", "3"), &buf, testTrans)
 	currentGold := p.Gold
 
 	if currentGold != 5 {
@@ -211,10 +211,10 @@ func TestShopSellPotion(t *testing.T) {
 
 func TestShopSellItemNotOwned(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 0, Items: []string{"Health Potion"}}
+	p := &Player{Gold: 0, Items: []int{1}}
 
 	// player has a potion but tries to sell item ID 2 (Vorpal Sword)
-	RunShop(p, scriptedInput("2", "2", "0", "3"), &buf)
+	RunShop(p, scriptedInput("2", "2", "0", "3"), &buf, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "don't have") {
@@ -230,24 +230,24 @@ func TestShopSellItemNotOwned(t *testing.T) {
 
 func TestShopSellRemovesCorrectItem(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 0, Items: []string{"Health Potion", "Vorpal Sword +5"}}
+	p := &Player{Gold: 0, Items: []int{1, 2}}
 
 	// sell the sword (ID 2), potion should remain
-	RunShop(p, scriptedInput("2", "2", "0", "3"), &buf)
+	RunShop(p, scriptedInput("2", "2", "0", "3"), &buf, testTrans)
 
 	if len(p.Items) != 1 {
 		t.Errorf("expected 1 item remaining, got: %d", len(p.Items))
 	}
-	if p.Items[0] != "Health Potion" {
-		t.Errorf("expected Health Potion to remain, got: %s", p.Items[0])
+	if p.Items[0] != 1 {
+		t.Errorf("expected Health Potion (id=1) to remain, got: %d", p.Items[0])
 	}
 }
 
 func TestShopSellShoes(t *testing.T) {
 	var buf bytes.Buffer
-	p := &Player{Gold: 0, hasShoes: true, Items: []string{"Winged Shoes"}}
+	p := &Player{Gold: 0, hasShoes: true, Items: []int{4}}
 
-	RunShop(p, scriptedInput("2", "4", "0", "3"), &buf)
+	RunShop(p, scriptedInput("2", "4", "0", "3"), &buf, testTrans)
 
 	if p.hasShoes {
 		t.Errorf("expected hasShoes false, got %t", p.hasShoes)

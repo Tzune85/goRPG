@@ -1,6 +1,11 @@
 package game
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+	"strconv"
+	"strings"
+)
 
 type Class string
 
@@ -20,7 +25,7 @@ type Player struct {
 	Gold     int
 	Level    int
 	XP       int
-	Items    []string
+	Items    []int
 	hasShoes bool
 }
 
@@ -30,36 +35,36 @@ func NewPlayer(name string, class Class) *Player {
 		Class: class,
 		Level: 1,
 		Gold:  10,
-		Items: []string{},
+		Items: []int{},
 	}
 
 	switch class {
 	case Warrior:
 		p.Stats = Stats{HP: 100, MaxHP: 100}
 		p.Attack = 15
-		p.Items = []string{"Health Potion", "Health Potion"}
+		p.Items = []int{1, 1}
 		p.Gold = 1
 	case Mage:
 		p.Stats = Stats{HP: 70, MaxHP: 70}
 		p.Attack = 25
-		p.Items = []string{"Health Potion"}
+		p.Items = []int{1}
 		p.Gold = 5
 	case Thief:
 		p.Stats = Stats{HP: 85, MaxHP: 85}
 		p.Attack = 18
-		p.Items = []string{}
+		p.Items = []int{}
 		p.Gold = 10
 	case God:
 		p.Stats = Stats{HP: 1000, MaxHP: 1000}
 		p.Attack = 1000
-		p.Items = []string{"Health Potion", "Sword +1"}
+		p.Items = []int{1, 2}
 		p.Gold = 10000
 	}
 
 	return p
 }
 
-func (p *Player) AddXP(amount int) {
+func (p *Player) AddXP(amount int, out io.Writer, t *Translator) {
 	p.XP += amount
 	if p.XP >= p.Level*100 {
 		p.Level++
@@ -67,32 +72,26 @@ func (p *Player) AddXP(amount int) {
 		p.MaxHP += 15
 		p.HP = p.MaxHP
 		p.Attack += 3
-		fmt.Printf("\n⚡ LEVEL UP! Now level %d! (HP: %d, ATK: %d)\n",
-			p.Level, p.MaxHP, p.Attack)
+		fmt.Fprintf(out, t.T("status_level_up"), p.Level, p.MaxHP, p.Attack)
 	}
 }
 
-func (p *Player) Status() string {
-	return fmt.Sprintf("[ %s the %s | HP %d/%d | Gold %d | Lv.%d ]",
-		p.Name, p.Class, p.HP, p.MaxHP, p.Gold, p.Level)
+func (p *Player) Status(t *Translator) string {
+	return fmt.Sprintf(t.T("status_bar"),
+		p.Name, t.T("class_"+strings.ToLower(string(p.Class))), p.HP, p.MaxHP, p.Gold, p.Level)
 }
 
-func (p *Player) DetailedStatus() string {
-	inv := "empty"
+func (p *Player) DetailedStatus(t *Translator) string {
+	inv := t.T("status_items_empty")
 	if len(p.Items) > 0 {
-		inv = fmt.Sprintf("%v", p.Items)
+		names := make([]string, len(p.Items))
+		for i, id := range p.Items {
+			names[i] = t.T("item_" + strconv.Itoa(id) + "_name")
+		}
+		inv = strings.Join(names, ", ")
 	}
-	return fmt.Sprintf(`
-=== CHARACTER SHEET ===
-Name   : %s
-Class  : %s
-Level  : %d (XP: %d/%d)
-HP     : %d / %d
-Attack : %d
-Gold   : %d
-Items  : %s
-=======================`,
-		p.Name, p.Class,
+	return fmt.Sprintf(t.T("status_sheet"),
+		p.Name, t.T("class_"+strings.ToLower(string(p.Class))),
 		p.Level, p.XP, p.Level*100,
 		p.HP, p.MaxHP,
 		p.Attack,

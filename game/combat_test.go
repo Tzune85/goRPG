@@ -12,6 +12,7 @@ var (
 	alwaysAttack = func(prompt string) (string, bool) { return "1", true }
 	mockPotion   = func(prompt string) (string, bool) { return "2", true }
 	mockRun      = func(prompt string) (string, bool) { return "3", true }
+	testTrans, _ = newTranslator("en")
 )
 
 func TestPlayerKillsEnemy(t *testing.T) {
@@ -19,7 +20,7 @@ func TestPlayerKillsEnemy(t *testing.T) {
 	e := Enemy{Name: "TestDummy", Stats: Stats{HP: 1, MaxHP: 1}, Attack: 1}
 	rng := rand.New(rand.NewSource(42))
 
-	result, _ := RunCombat(p, &e, alwaysAttack, io.Discard, rng)
+	result, _ := RunCombat(p, &e, alwaysAttack, io.Discard, rng, testTrans)
 
 	if !result {
 		t.Error("expected player to win against 1HP enemy")
@@ -30,7 +31,7 @@ func TestPlayerKillsEnemyNegativeAttack(t *testing.T) {
 	p := Player{Name: "TestDummy", Stats: Stats{HP: 100, MaxHP: 100}, Attack: -20}
 	e := Enemy{Name: "TestDummy", Stats: Stats{HP: 1, MaxHP: 1}, Attack: 1}
 
-	result, _ := RunCombat(&p, &e, alwaysAttack, io.Discard, rand.New(rand.NewSource(0)))
+	result, _ := RunCombat(&p, &e, alwaysAttack, io.Discard, rand.New(rand.NewSource(0)), testTrans)
 
 	if !result {
 		t.Error("expected player to win against 1HP enemy")
@@ -42,7 +43,7 @@ func TestEnemyKillPlayer(t *testing.T) {
 	e, _ := NewEnemy("Goblin")
 	rng := rand.New(rand.NewSource(42))
 
-	result, _ := RunCombat(p, &e, alwaysAttack, io.Discard, rng)
+	result, _ := RunCombat(p, &e, alwaysAttack, io.Discard, rng, testTrans)
 
 	if result {
 		t.Error("expected enemy to win against 1HP player")
@@ -54,7 +55,7 @@ func TestEnemyKillPlayerNegative(t *testing.T) {
 	e := Enemy{Name: "TestDummy", Stats: Stats{HP: 100, MaxHP: 100}, Attack: -20}
 	rng := rand.New(rand.NewSource(42))
 
-	result, _ := RunCombat(p, &e, alwaysAttack, io.Discard, rng)
+	result, _ := RunCombat(p, &e, alwaysAttack, io.Discard, rng, testTrans)
 
 	if result {
 		t.Error("expected enemy to win against 1HP player")
@@ -64,12 +65,12 @@ func TestEnemyKillPlayerNegative(t *testing.T) {
 func TestPlayerUsePotion(t *testing.T) {
 	var buf bytes.Buffer
 	p := &Player{Name: "DamagedHero", Stats: Stats{HP: 1, MaxHP: 100}, Attack: 100}
-	p.Items = []string{"Health Potion"}
+	p.Items = []int{1}
 
 	e, _ := NewEnemy("Ancient Dragon")
 	rng := rand.New(rand.NewSource(42))
 
-	RunCombat(p, &e, mockPotion, &buf, rng)
+	RunCombat(p, &e, mockPotion, &buf, rng, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "You drink a potion and recover 30 HP!") {
@@ -84,7 +85,7 @@ func TestPlayerNoPotion(t *testing.T) {
 	e, _ := NewEnemy("Ancient Dragon")
 	rng := rand.New(rand.NewSource(42))
 
-	RunCombat(p, &e, mockPotion, &buf, rng)
+	RunCombat(p, &e, mockPotion, &buf, rng, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "You have no potions!") {
@@ -95,12 +96,12 @@ func TestPlayerNoPotion(t *testing.T) {
 func TestPlayerUsePotionFullHealthText(t *testing.T) {
 	var buf bytes.Buffer
 	p := &Player{Name: "TestHero", Stats: Stats{HP: 1, MaxHP: 1}, Attack: 1}
-	p.Items = []string{"Health Potion"}
+	p.Items = []int{1}
 
 	e, _ := NewEnemy("Ancient Dragon")
 	rng := rand.New(rand.NewSource(42))
 
-	RunCombat(p, &e, mockPotion, &buf, rng)
+	RunCombat(p, &e, mockPotion, &buf, rng, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "Your health is full!") {
@@ -110,12 +111,12 @@ func TestPlayerUsePotionFullHealthText(t *testing.T) {
 
 func TestPlayerUsePotionFullHealth(t *testing.T) {
 	p := &Player{Name: "TestHero", Stats: Stats{HP: 1, MaxHP: 1}, Attack: 1}
-	p.Items = []string{"Health Potion"}
+	p.Items = []int{1}
 
 	e, _ := NewEnemy("Ancient Dragon")
 	rng := rand.New(rand.NewSource(42))
 
-	RunCombat(p, &e, mockPotion, io.Discard, rng)
+	RunCombat(p, &e, mockPotion, io.Discard, rng, testTrans)
 	if len(p.Items) == 0 {
 		t.Error("potion should not have been consumed at full HP")
 	}
@@ -137,7 +138,7 @@ func TestPlayerCombatOptions(t *testing.T) {
 		return "1", true
 	}
 
-	RunCombat(p, &e, mixedAction, &buf, rng)
+	RunCombat(p, &e, mixedAction, &buf, rng, testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "Unknown") {
@@ -151,7 +152,7 @@ func TestPlayerRun(t *testing.T) {
 	e, _ := NewEnemy("Goblin")
 
 	// seed 0: primo Intn(2) == 0 → escape immediato
-	RunCombat(p, &e, mockRun, &buf, rand.New(rand.NewSource(0)))
+	RunCombat(p, &e, mockRun, &buf, rand.New(rand.NewSource(0)), testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "You escaped!") {
@@ -174,7 +175,7 @@ func TestPlayerCantEscape(t *testing.T) {
 	}
 
 	// seed 1: primo Intn(2) == 1 → escape fallisce
-	RunCombat(p, &e, run, &buf, rand.New(rand.NewSource(1)))
+	RunCombat(p, &e, run, &buf, rand.New(rand.NewSource(1)), testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "You couldn't escape!") {
@@ -197,7 +198,7 @@ func TestPlayerRunWithShoes(t *testing.T) {
 	}
 
 	// seed 1: primo Intn(2) == 1 → escape fallisce
-	RunCombat(p, &e, run, &buf, rand.New(rand.NewSource(1)))
+	RunCombat(p, &e, run, &buf, rand.New(rand.NewSource(1)), testTrans)
 	output := buf.String()
 
 	if !strings.Contains(output, "You escaped!") {

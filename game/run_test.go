@@ -12,7 +12,7 @@ func TestRunQuit(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("Hero\n1\nq\n")
+	reader := strings.NewReader("1\nHero\n1\nq\n1\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -29,7 +29,7 @@ func TestRunEOF(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("Hero\n1\n")
+	reader := strings.NewReader("1\nHero\n1\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -48,7 +48,7 @@ func TestRunPlayerDead(t *testing.T) {
 	game := New()
 	game.out = &buf
 	game.rng = rand.New(rand.NewSource(42))
-	reader := strings.NewReader("Hero\n2\nn\n" + strings.Repeat("2\n", 15))
+	reader := strings.NewReader("1\nHero\n2\nn\n" + strings.Repeat("2\n", 15))
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 

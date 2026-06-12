@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -19,16 +20,18 @@ type Game struct {
 	in      io.Reader
 	out     io.Writer
 	rng     *rand.Rand
+	t       *Translator
 }
 
 var aliases = map[string]string{
-	"north": "north", "n": "north",
-	"south": "south", "s": "south",
-	"east": "east", "e": "east",
-	"west": "west", "w": "west",
+	"north": "north", "n": "north", "nord": "north",
+	"south": "south", "s": "south", "sud": "south",
+	"east": "east", "e": "east", "est": "east",
+	"west": "west", "w": "west", "ovest": "west",
 }
 
 func New() *Game {
+	t, _ := newTranslator("en")
 	return &Game{
 		World:   BuildWorld(),
 		Current: "entrance",
@@ -37,6 +40,7 @@ func New() *Game {
 		in:      os.Stdin,
 		out:     os.Stdout,
 		rng:     rand.New(rand.NewSource(time.Now().UnixNano())),
+		t:       t,
 	}
 }
 
@@ -48,6 +52,9 @@ func (g *Game) readLine(prompt string) (string, bool) {
 
 func (g *Game) Run() {
 	g.setup()
+	if g.Player == nil {
+		return
+	}
 
 	g.running = true
 	for g.running && g.Player.IsAlive() {
@@ -60,24 +67,33 @@ func (g *Game) Run() {
 	}
 
 	if !g.Player.IsAlive() {
-		fmt.Fprintln(g.out, "\nYou have fallen in the dungeon. GAME OVER.")
+		fmt.Fprintln(g.out, g.t.T("game_over"))
 	}
 }
 
 func (g *Game) setup() {
+	choice, ok := g.readLine("\tSelect language / Seleziona lingua:\n\t[1] English    / [2] Italiano\n> ")
+	if !ok {
+		return
+	}
+	lang := "en"
+	if strings.TrimSpace(choice) == "2" {
+		lang = "it"
+	}
+	t, err := newTranslator(lang)
+	if err != nil {
+		return
+	}
+	g.t = t
 	fmt.Fprint(g.out, "\033[H\033[2J")
-	fmt.Fprintln(g.out, `
-╔══════════════════════════════════════╗
-║       DUNGEON OF SHADOWS  v1.0       ║
-║        A Text Adventure RPG          ║
-╚══════════════════════════════════════╝`)
+	fmt.Fprintln(g.out, g.t.T("setup_title"))
 
-	name, ok := g.readLine("Enter your name, adventurer: ")
+	name, ok := g.readLine(g.t.T("setup_name_prompt"))
 	if !ok {
 		return
 	}
 	if name == "" {
-		name = "Hero"
+		name = g.t.T("setup_default_name")
 	}
 
 	class, ok := g.chooseClass()
@@ -91,10 +107,10 @@ func (g *Game) setup() {
 }
 
 func (g *Game) chooseClass() (Class, bool) {
-	fmt.Fprintln(g.out, "\nChoose your class:")
-	fmt.Fprintln(g.out, "  [1] Warrior — 100 HP, 15 ATK")
-	fmt.Fprintln(g.out, "  [2] Mage    —  70 HP, 25 ATK")
-	fmt.Fprintln(g.out, "  [3] Thief   —  85 HP, 18 ATK")
+	fmt.Fprintln(g.out, g.t.T("setup_choose_class"))
+	fmt.Fprintln(g.out, g.t.T("setup_class_warrior"))
+	fmt.Fprintln(g.out, g.t.T("setup_class_mage"))
+	fmt.Fprintln(g.out, g.t.T("setup_class_thief"))
 
 	for {
 		choice, ok := g.readLine("> ")
@@ -102,16 +118,16 @@ func (g *Game) chooseClass() (Class, bool) {
 			return ClassUndefinied, false
 		}
 		switch choice {
-		case "1", "warrior":
+		case "1", "warrior", "guerriero":
 			return Warrior, true
-		case "2", "mage":
+		case "2", "mage", "mago":
 			return Mage, true
-		case "3", "thief":
+		case "3", "thief", "ladro":
 			return Thief, true
-		case "god", "42":
+		case "42", "god":
 			return God, true
 		default:
-			fmt.Fprintln(g.out, "Please choose 1, 2, or 3.")
+			fmt.Fprintln(g.out, g.t.T("setup_class_invalid"))
 		}
 	}
 }
@@ -129,7 +145,7 @@ func (g *Game) handleInput(raw string) {
 	}
 
 	switch verb {
-	case "go", "move":
+	case "go", "move", "vai":
 		g.move(arg)
 	case "north", "n":
 		g.move("north")
@@ -137,33 +153,42 @@ func (g *Game) handleInput(raw string) {
 		g.move("south")
 	case "east", "e":
 		g.move("east")
-	case "west", "w":
+	case "west", "w", "o":
 		g.move("west")
-	case "look", "l":
+	case "look", "l", "guarda", "g":
 		g.describeRoom()
-	case "inventory", "inv", "i":
+	case "inventory", "inv", "i", "inventario":
 		g.showInventory()
-	case "status":
-		fmt.Fprintln(g.out, g.Player.DetailedStatus())
-	case "help", "?":
+	case "status", "scheda":
+		fmt.Fprintln(g.out, g.Player.DetailedStatus(g.t))
+	case "help", "?", "aiuto":
 		g.printHelp()
 	case "quit", "q":
-		fmt.Fprintln(g.out, "Farewell, adventurer...")
-		g.running = false
+		g.quit()
 	default:
-		fmt.Fprintf(g.out, "Unknown command '%s'. Type 'help' for commands.\n", raw)
+		fmt.Fprintln(g.out, g.t.T("cmd_unknown", raw))
 	}
+}
+
+func (g *Game) quit() {
+	fmt.Fprintln(g.out, g.t.T("cmd_quit_guard"))
+	choice, ok := g.readLine("> ")
+	if !ok || choice != "1" {
+		return
+	}
+	fmt.Fprintln(g.out, g.t.T("cmd_farewell"))
+	g.running = false
 }
 
 func (g *Game) move(direction string) {
 	if direction == "" {
-		fmt.Fprintln(g.out, "Move where? (north, south, east, west)")
+		fmt.Fprintln(g.out, g.t.T("nav_move_where"))
 		return
 	}
 
 	full, ok := aliases[direction]
 	if !ok {
-		fmt.Fprintf(g.out, "%s is not a direction.\n", direction)
+		fmt.Fprintln(g.out, g.t.T("nav_bad_direction", direction))
 		return
 	}
 
@@ -172,7 +197,7 @@ func (g *Game) move(direction string) {
 	room := g.World[g.Current]
 	nextID, exists := room.Exits[direction]
 	if !exists {
-		fmt.Fprintf(g.out, "You can't go %s from here.\n", direction)
+		fmt.Fprintln(g.out, g.t.T("nav_no_exit", direction))
 		return
 	}
 
@@ -181,13 +206,13 @@ func (g *Game) move(direction string) {
 	g.describeRoom()
 
 	if next.IsShop {
-		RunShop(g.Player, g.readLine, g.out)
+		RunShop(g.Player, g.readLine, g.out, g.t)
 	}
 
 	if next.EnemyName != "" && !next.Cleared {
 		enemy, found := NewEnemy(next.EnemyName)
 		if found {
-			won, completed := RunCombat(g.Player, &enemy, g.readLine, g.out, g.rng)
+			won, completed := RunCombat(g.Player, &enemy, g.readLine, g.out, g.rng, g.t)
 
 			if !completed {
 				return
@@ -199,8 +224,8 @@ func (g *Game) move(direction string) {
 
 			if won {
 				next.Cleared = true
-				fmt.Fprintf(g.out, "You gain %d XP and %d Gold!\n", enemy.XP, enemy.Gold)
-				g.Player.AddXP(enemy.XP)
+				fmt.Fprintln(g.out, g.t.T("game_xp_gold", enemy.XP, enemy.Gold))
+				g.Player.AddXP(enemy.XP, g.out, g.t)
 				g.Player.Gold += enemy.Gold
 
 				if next.IsBoss {
@@ -213,52 +238,43 @@ func (g *Game) move(direction string) {
 	}
 
 	if len(next.Items) > 0 && (next.EnemyName == "" || next.Cleared) {
-		for _, item := range next.Items {
-			g.Player.Items = append(g.Player.Items, item)
-			fmt.Fprintf(g.out, "You found: %s!\n", item)
+		for _, id := range next.Items {
+			g.Player.Items = append(g.Player.Items, id)
+			fmt.Fprintln(g.out, g.t.T("nav_found_item", g.t.T("item_"+strconv.Itoa(id)+"_name")))
 		}
 		next.Items = nil
 	}
-
 }
 
 func (g *Game) describeRoom() {
-	room := g.World[g.Current]
-
 	var exits []string
-	for dir := range room.Exits {
-		exits = append(exits, dir)
+	for dir := range g.World[g.Current].Exits {
+		exits = append(exits, g.t.T("dir_"+dir))
 	}
 
-	fmt.Fprintf(g.out, "\n=== %s ===\n", strings.ToUpper(room.Name))
-	fmt.Fprintln(g.out, room.Description)
-	fmt.Fprintf(g.out, "\nExits: %s\n", strings.Join(exits, " | "))
+	name := g.t.T("room_" + g.Current + "_name")
+	desc := g.t.T("room_" + g.Current + "_desc")
+
+	fmt.Fprintf(g.out, g.t.T("room_header"), strings.ToUpper(name))
+	fmt.Fprintln(g.out, desc)
+	fmt.Fprintf(g.out, g.t.T("room_exits"), strings.Join(exits, " | "))
 }
 
 func (g *Game) showInventory() {
 	if len(g.Player.Items) == 0 {
-		fmt.Fprintln(g.out, "Your inventory is empty.")
+		fmt.Fprintln(g.out, g.t.T("inv_empty"))
 		return
 	}
-	fmt.Fprintln(g.out, "Inventory:")
-	for _, item := range g.Player.Items {
-		fmt.Fprintf(g.out, "  - %s\n", item)
+	fmt.Fprintln(g.out, g.t.T("inv_header"))
+	for _, id := range g.Player.Items {
+		fmt.Fprintln(g.out, g.t.T("inv_item", g.t.T("item_"+strconv.Itoa(id)+"_name")))
 	}
 }
 
 func (g *Game) victory() {
-	fmt.Fprintf(g.out, "\nYOU WIN! Final score: Level %d | Gold %d\n",
-		g.Player.Level, g.Player.Gold)
+	fmt.Fprintf(g.out, g.t.T("game_win"), g.Player.Level, g.Player.Gold)
 }
 
 func (g *Game) printHelp() {
-	fmt.Fprintln(g.out, `
-Commands:
-  go [north|south|east|west]   Move
-  n / s / e / w                Shortcut directions
-  look  (l)                    Describe current room
-  inventory  (i)               Show items
-  status                       Show character sheet
-  help  (?)                    Show this help
-  quit  (q)                    Exit`)
+	fmt.Fprintln(g.out, g.t.T("cmd_help"))
 }

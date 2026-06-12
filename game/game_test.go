@@ -11,7 +11,7 @@ func TestShowInventory(t *testing.T) {
 	game := New()
 	game.out = &buf
 	game.Player = NewPlayer("TestInventory", Mage)
-	game.Player.Items = []string{"Health Potion"}
+	game.Player.Items = []int{1}
 
 	game.showInventory()
 	output := buf.String()
@@ -26,7 +26,7 @@ func TestShowInventoryEmpty(t *testing.T) {
 	game := New()
 	game.out = &buf
 	game.Player = NewPlayer("TestInventory", Mage)
-	game.Player.Items = []string{}
+	game.Player.Items = []int{}
 
 	game.showInventory()
 	output := buf.String()
