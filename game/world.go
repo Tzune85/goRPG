@@ -1,6 +1,9 @@
 package game
 
-import "math/rand"
+import (
+	"math/rand"
+	"time"
+)
 
 type Room struct {
 	Name        string
@@ -14,7 +17,7 @@ type Room struct {
 }
 
 func BuildWorld() map[string]*Room {
-	rng := rand.New(rand.NewSource(0))
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	return map[string]*Room{
 		"entrance": {
 			Exits: map[string]string{"north": "corridor"},

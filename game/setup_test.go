@@ -11,7 +11,7 @@ func TestSetupEOFName(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("")
+	reader := strings.NewReader("1\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -29,7 +29,7 @@ func TestSetupEOFClass(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("Hero\n")
+	reader := strings.NewReader("1\nHero\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -47,7 +47,7 @@ func TestSetupDefaultName(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("\n\n1\n")
+	reader := strings.NewReader("1\n\n1\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -62,7 +62,7 @@ func TestSetupDescribeRoom(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
 	game.out = &buf
-	reader := strings.NewReader("\n\n1\n")
+	reader := strings.NewReader("1\n\n1\n")
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -141,5 +141,59 @@ func TestChoseClassInvalid(t *testing.T) {
 
 	if !strings.Contains(output, "Please choose 1, 2, or 3.") {
 		t.Errorf("expected Please choose, got : %s", output)
+	}
+}
+
+func TestItTranslator(t *testing.T) {
+	var buf bytes.Buffer
+	game := New()
+	game.out = &buf
+	reader := strings.NewReader("2\n")
+	game.in = reader
+	game.scanner = bufio.NewScanner(reader)
+
+	game.setup()
+
+	output := buf.String()
+
+	if !strings.Contains(output, "Inserisci il tuo nome, avventuriero:") {
+		t.Errorf("expected italian language, got : %s", output)
+	}
+
+}
+
+func TestEnTranslator(t *testing.T) {
+	var buf bytes.Buffer
+	game := New()
+	game.out = &buf
+	reader := strings.NewReader("1\n")
+	game.in = reader
+	game.scanner = bufio.NewScanner(reader)
+
+	game.setup()
+
+	output := buf.String()
+
+	if !strings.Contains(output, "Enter your name, adventurer: ") {
+		t.Errorf("expected english language, got : %s", output)
+	}
+
+}
+
+func TestTranslatorEOF(t *testing.T) {
+	var buf bytes.Buffer
+	game := New()
+	game.out = &buf
+	reader := strings.NewReader("\n")
+	game.in = reader
+	game.scanner = bufio.NewScanner(reader)
+
+	game.setup()
+
+	if game.running {
+		t.Errorf("expected running=false after EOF")
+	}
+	if strings.Contains(buf.String(), "Farewell") {
+		t.Errorf("EOF path should not print quit message")
 	}
 }

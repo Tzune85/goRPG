@@ -60,3 +60,21 @@ func TestRunPlayerDead(t *testing.T) {
 	}
 
 }
+
+func TestRunFirstEOF(t *testing.T) {
+	var buf bytes.Buffer
+	game := New()
+	game.out = &buf
+	reader := strings.NewReader("\n")
+	game.in = reader
+	game.scanner = bufio.NewScanner(reader)
+
+	game.Run()
+
+	if game.running {
+		t.Errorf("expected running=false after EOF")
+	}
+	if strings.Contains(buf.String(), "Farewell") {
+		t.Errorf("EOF path should not print quit message")
+	}
+}

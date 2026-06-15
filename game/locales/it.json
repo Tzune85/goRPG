@@ -21,7 +21,7 @@
   "cmd_quit_guard": "Vuoi già abbandonare l'avventura...codardo?\n [1] Si, me la sto facendo sotto\n [2] No! Ce la posso fare!",
   "cmd_farewell": "Addio, \"avventuriero\"...",
   "cmd_unknown": "Comando sconosciuto '%s'. Scrivi 'aiuto' per i comandi.",
-  "cmd_help": "\nComandi:\n  vai [nord|sud|est|ovest]     Muoviti\n  n / s / e / o                Direzioni rapide\n  guarda  (g)                  Descrivi la stanza attuale\n  inventario  (i)              Mostra oggetti\n  scheda                       Mostra scheda personaggio\n  aiuto  (?)                   Mostra questo aiuto\n  quit  (q)                    Esci",
+  "cmd_help": "\nComandi:\n  vai [nord|sud|est|ovest]     Muoviti\n  n / s / e / o                Direzioni rapide\n  guarda  (g)                  Descrivi la stanza attuale\n  inventario  (i)              Mostra oggetti\n  pozione (p)                  Usa una pozione\n  scheda                       Mostra scheda personaggio\n  aiuto  (?)                   Mostra questo aiuto\n  quit  (q)                    Esci",
 
   "inv_empty": "Il tuo inventario è vuoto.",
   "inv_header": "Inventario:",

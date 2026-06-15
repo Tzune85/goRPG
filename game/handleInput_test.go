@@ -212,3 +212,35 @@ func TestHandleInputHelp(t *testing.T) {
 		}
 	}
 }
+
+func TestHandleInputPotion(t *testing.T) {
+	cases := []struct {
+		name    string
+		command string
+	}{
+		{"word potion", "potion"},
+		{"digit p", "p"},
+		{"word pozione", "pozione"},
+		{"word cure", "cure"},
+	}
+
+	for _, c := range cases {
+
+		var buf bytes.Buffer
+		game := New()
+		game.Player = &Player{Name: "Test", Stats: Stats{HP: 10, MaxHP: 50}, Items: []int{1}}
+		game.out = &buf
+		game.running = true
+
+		game.handleInput(c.command)
+		output := buf.String()
+		currentHP := game.Player.HP
+
+		if !strings.Contains(output, "You drink a potion and recover 30 HP!") {
+			t.Errorf("expected stastus, got : %s", output)
+		}
+		if game.Player.HP != 40 {
+			t.Errorf("expected 40 HP, got : %d", currentHP)
+		}
+	}
+}

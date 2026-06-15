@@ -71,21 +71,35 @@ func (g *Game) Run() {
 	}
 }
 
+func (g *Game) chooseLanguage() (*Translator, bool) {
+	fmt.Fprint(g.out, "\033[H\033[2J")
+	fmt.Fprint(g.out, "\tSelect language / Seleziona lingua:\n\t[1] English    / [2] Italiano\n> ")
+	for {
+		choice, ok := g.readLine("> ")
+		if !ok {
+			return nil, false
+		}
+
+		switch choice {
+		case "1", "english":
+			t, _ := newTranslator("en")
+			return t, true
+		case "2", "italiano":
+			t, _ := newTranslator("it")
+			return t, true
+		default:
+			fmt.Fprintln(g.out, "Invalid selection / Selezione sbagliata")
+		}
+
+	}
+}
+
 func (g *Game) setup() {
-	choice, ok := g.readLine("\tSelect language / Seleziona lingua:\n\t[1] English    / [2] Italiano\n> ")
+	lang, ok := g.chooseLanguage()
 	if !ok {
 		return
 	}
-	lang := "en"
-	if strings.TrimSpace(choice) == "2" {
-		lang = "it"
-	}
-	t, err := newTranslator(lang)
-	if err != nil {
-		return
-	}
-	g.t = t
-	fmt.Fprint(g.out, "\033[H\033[2J")
+	g.t = lang
 	fmt.Fprintln(g.out, g.t.T("setup_title"))
 
 	name, ok := g.readLine(g.t.T("setup_name_prompt"))
@@ -159,6 +173,8 @@ func (g *Game) handleInput(raw string) {
 		g.describeRoom()
 	case "inventory", "inv", "i", "inventario":
 		g.showInventory()
+	case "potion", "cure", "pozione", "p":
+		usePotion(g.Player, g.out, g.t)
 	case "status", "scheda":
 		fmt.Fprintln(g.out, g.Player.DetailedStatus(g.t))
 	case "help", "?", "aiuto":
