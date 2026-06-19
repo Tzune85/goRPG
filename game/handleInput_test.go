@@ -88,10 +88,10 @@ func TestHandleInputMove(t *testing.T) {
 		{"go south", "go south", "corridor", "entrance", ""},
 		{"move south", "move south", "corridor", "entrance", ""},
 
-		{"alias e", "e", "corridor", "crypt", ""},
-		{"east complete", "east", "corridor", "crypt", ""},
-		{"go east", "go east", "corridor", "crypt", ""},
-		{"move east", "move east", "corridor", "crypt", ""},
+		{"alias e", "e", "corridor", "fungal_cavern", ""},
+		{"east complete", "east", "corridor", "fungal_cavern", ""},
+		{"go east", "go east", "corridor", "fungal_cavern", ""},
+		{"move east", "move east", "corridor", "fungal_cavern", ""},
 
 		{"alias w", "w", "armory", "shop", ""},
 		{"west complete", "west", "armory", "shop", ""},

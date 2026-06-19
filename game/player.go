@@ -27,6 +27,8 @@ type Player struct {
 	XP       int
 	Items    []int
 	hasShoes bool
+	//TODO
+	//isPoisoned bool
 }
 
 func NewPlayer(name string, class Class) *Player {
@@ -66,9 +68,9 @@ func NewPlayer(name string, class Class) *Player {
 
 func (p *Player) AddXP(amount int, out io.Writer, t *Translator) {
 	p.XP += amount
-	if p.XP >= p.Level*100 {
+	for threshold := p.Level * 100; p.XP >= threshold; threshold = p.Level * 100 {
+		p.XP -= threshold
 		p.Level++
-		p.XP = 0
 		p.MaxHP += 15
 		p.HP = p.MaxHP
 		p.Attack += 3

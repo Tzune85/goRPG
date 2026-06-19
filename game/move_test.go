@@ -115,7 +115,7 @@ func TestMoveBoss(t *testing.T) {
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
-	game.move("east")
+	game.move("west")
 	output := buf.String()
 
 	if game.running {

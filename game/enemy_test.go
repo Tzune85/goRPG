@@ -39,15 +39,6 @@ func TestEnemyTakeDamage(t *testing.T) {
 	}
 }
 
-func TestRandomEnemy(t *testing.T) {
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	e := RandomEnemy(3, rng)
-
-	if e.Name != "Ancient Dragon" {
-		t.Errorf("exoected dragon, got %s", e.Name)
-	}
-}
-
 func TestRandomEnemyTier1(t *testing.T) {
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	e := RandomEnemy(1, rng)
@@ -60,5 +51,35 @@ func TestRandomEnemyTier1(t *testing.T) {
 	}
 	if !slices.Contains(tier1Name, e.Name) {
 		t.Errorf("expected tier 1 monster, got %s", e.Name)
+	}
+}
+
+func TestRandomEnemyTier2(t *testing.T) {
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	e := RandomEnemy(2, rng)
+
+	var tier1Name []string
+	for _, enemy := range catalog {
+		if enemy.Tier == 2 {
+			tier1Name = append(tier1Name, enemy.Name)
+		}
+	}
+	if !slices.Contains(tier1Name, e.Name) {
+		t.Errorf("expected tier 2 monster, got %s", e.Name)
+	}
+}
+
+func TestRandomEnemyTier3(t *testing.T) {
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	e := RandomEnemy(3, rng)
+
+	var tier1Name []string
+	for _, enemy := range catalog {
+		if enemy.Tier == 3 {
+			tier1Name = append(tier1Name, enemy.Name)
+		}
+	}
+	if !slices.Contains(tier1Name, e.Name) {
+		t.Errorf("expected tier 3 monster, got %s", e.Name)
 	}
 }

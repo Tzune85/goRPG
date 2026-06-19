@@ -204,7 +204,7 @@ func (g *Game) move(direction string) {
 
 	full, ok := aliases[direction]
 	if !ok {
-		fmt.Fprintln(g.out, g.t.T("nav_bad_direction", direction))
+		fmt.Fprintln(g.out, g.t.T("nav_bad_direction", g.t.T("dir_"+direction)))
 		return
 	}
 
@@ -213,7 +213,7 @@ func (g *Game) move(direction string) {
 	room := g.World[g.Current]
 	nextID, exists := room.Exits[direction]
 	if !exists {
-		fmt.Fprintln(g.out, g.t.T("nav_no_exit", direction))
+		fmt.Fprintln(g.out, g.t.T("nav_no_exit", g.t.T("dir_"+direction)))
 		return
 	}
 
@@ -268,8 +268,12 @@ func (g *Game) describeRoom() {
 		exits = append(exits, g.t.T("dir_"+dir))
 	}
 
-	name := g.t.T("room_" + g.Current + "_name")
-	desc := g.t.T("room_" + g.Current + "_desc")
+	translationKey := g.Current
+	if k := g.World[g.Current].TranslationKey; k != "" {
+		translationKey = k
+	}
+	name := g.t.T("room_" + translationKey + "_name")
+	desc := g.t.T("room_" + translationKey + "_desc")
 
 	fmt.Fprintf(g.out, g.t.T("room_header"), strings.ToUpper(name))
 	fmt.Fprintln(g.out, desc)

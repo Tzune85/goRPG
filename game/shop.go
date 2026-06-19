@@ -27,6 +27,10 @@ var inventory = map[int]Item{
 	4: {ID: 4, Name: "Winged Shoes", Description: "item_4_desc", Price: 20, Modifier: func(p *Player, sign int) {
 		p.hasShoes = sign > 0
 	}},
+	//TODO
+	//5: {ID: 5, Name: "Antidote", Description: "item_5_desc", Price: 15, Modifier: func(p *Player, sign int) {
+	//	p.isPoisoned = sign > 0
+	//}},
 }
 
 func RunShop(p *Player, readLine func(string) (string, bool), out io.Writer, t *Translator) {
