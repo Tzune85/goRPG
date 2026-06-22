@@ -8,3 +8,9 @@ test:
 
 build:
 	go build -o goRpg ./...
+
+server:
+	go run ./cmd/server
+
+docker:
+	docker build -t dungeon-of-shadows .

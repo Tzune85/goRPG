@@ -17,11 +17,14 @@ type Game struct {
 	Current string
 	scanner *bufio.Scanner
 	running bool
+	won     bool
 	in      io.Reader
 	out     io.Writer
 	rng     *rand.Rand
 	t       *Translator
 }
+
+func (g *Game) Victory() bool { return g.won }
 
 var aliases = map[string]string{
 	"north": "north", "n": "north", "nord": "north",
@@ -39,6 +42,20 @@ func New() *Game {
 		running: false,
 		in:      os.Stdin,
 		out:     os.Stdout,
+		rng:     rand.New(rand.NewSource(time.Now().UnixNano())),
+		t:       t,
+	}
+}
+
+func NewWithIO(in io.Reader, out io.Writer) *Game {
+	t, _ := newTranslator("en")
+	return &Game{
+		World:   BuildWorld(),
+		Current: "entrance",
+		scanner: bufio.NewScanner(in),
+		running: false,
+		in:      in,
+		out:     out,
 		rng:     rand.New(rand.NewSource(time.Now().UnixNano())),
 		t:       t,
 	}
@@ -276,6 +293,9 @@ func (g *Game) describeRoom() {
 	desc := g.t.T("room_" + translationKey + "_desc")
 
 	fmt.Fprintf(g.out, g.t.T("room_header"), strings.ToUpper(name))
+	if art := g.World[g.Current].Art; art != "" {
+		fmt.Fprintln(g.out, strings.TrimLeft(art, "\n"))
+	}
 	fmt.Fprintln(g.out, desc)
 	fmt.Fprintf(g.out, g.t.T("room_exits"), strings.Join(exits, " | "))
 }
@@ -292,6 +312,7 @@ func (g *Game) showInventory() {
 }
 
 func (g *Game) victory() {
+	g.won = true
 	fmt.Fprintf(g.out, g.t.T("game_win"), g.Player.Level, g.Player.Gold)
 }
 

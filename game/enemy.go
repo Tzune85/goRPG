@@ -23,7 +23,7 @@ var catalog = []Enemy{
 	{Name: "Dark Knight", Stats: Stats{HP: 75, MaxHP: 75}, Attack: 18, XP: 80, Gold: 20, Tier: 2},
 	{Name: "Giant Spider", Stats: Stats{HP: 55, MaxHP: 55}, Attack: 15, XP: 60, Gold: 15, Tier: 2},
 	{Name: "Spider Lord", Stats: Stats{HP: 90, MaxHP: 90}, Attack: 20, XP: 120, Gold: 35, Tier: 3},
-	{Name: "Ancient Dragon", Stats: Stats{HP: 100, MaxHP: 100}, Attack: 25, XP: 200, Gold: 100, Tier: 3},
+	{Name: "Ancient Dragon", Stats: Stats{HP: 120, MaxHP: 120}, Attack: 25, XP: 200, Gold: 100, Tier: 3},
 }
 
 func NewEnemy(name string) (Enemy, bool) {

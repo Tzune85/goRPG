@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dungeon of Shadows — Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #050508;
+      --gold:   #f5c400;
+      --amber:  #ff9900;
+      --red:    #e03030;
+      --green:  #00e060;
+      --white:  #e8e8e8;
+      --dim:    #555566;
+      --pixel:  'Press Start 2P', monospace;
+    }
+
+    html, body { width: 100%; height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--pixel);
+      font-size: 10px;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
+      gap: 2rem;
+      position: relative;
+      overflow-x: hidden;
+      image-rendering: pixelated;
+    }
+
+    /* CRT scanlines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 2px,
+        rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* CRT vignette */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 90% 80% at 50% 50%,
+        transparent 50%, rgba(0,0,0,0.7) 100%);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+      text-align: center;
+    }
+
+    .back-link {
+      align-self: flex-start;
+      color: var(--dim);
+      text-decoration: none;
+      font-size: .5rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .back-link:hover { color: var(--gold); }
+
+    h1 {
+      font-size: clamp(.8rem, 3vw, 1.1rem);
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      text-shadow:
+        2px 2px 0 #7a6000,
+        0 0 16px rgba(245,196,0,0.5);
+      line-height: 1.6;
+    }
+
+    .subtitle {
+      font-size: .5rem;
+      color: var(--dim);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    /* ── Board panel ── */
+    .board-panel {
+      width: 100%;
+      background: #000;
+      border: 4px solid var(--dim);
+      box-shadow: 4px 4px 0 #222;
+    }
+
+    .board-panel table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .board-panel th {
+      font-size: .45rem;
+      color: var(--dim);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: .7rem .8rem;
+      border-bottom: 2px solid var(--dim);
+      text-align: left;
+      font-weight: normal;
+    }
+
+    .board-panel td {
+      font-size: .5rem;
+      padding: .65rem .8rem;
+      border-bottom: 1px solid #1a1a22;
+      letter-spacing: .05em;
+    }
+
+    .board-panel tr:last-child td { border-bottom: none; }
+
+    .board-panel tr:hover td {
+      background: #0d0a00;
+    }
+
+    /* rank medals */
+    .rank-1 .rank-cell { color: var(--gold);  text-shadow: 0 0 8px rgba(245,196,0,0.6); }
+    .rank-2 .rank-cell { color: #c0c0c0; }
+    .rank-3 .rank-cell { color: #cd7f32; }
+
+    .score-cell {
+      color: var(--amber);
+      text-shadow: 0 0 6px rgba(255,153,0,0.4);
+    }
+
+    .date-cell { color: var(--dim); font-size: .4rem; }
+
+    /* empty state */
+    .empty {
+      text-align: center;
+      color: var(--dim);
+      font-size: .55rem;
+      padding: 3rem 1rem;
+      line-height: 2.5;
+      letter-spacing: .08em;
+    }
+
+    /* ── Pixel button ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .9rem 1.4rem;
+      background: #0d0a00;
+      border: 4px solid var(--gold);
+      color: var(--gold);
+      font-family: var(--pixel);
+      font-size: .7rem;
+      letter-spacing: .08em;
+      cursor: pointer;
+      text-decoration: none;
+      text-transform: uppercase;
+      box-shadow: 4px 4px 0 #554400;
+      transition: background .05s, box-shadow .05s;
+    }
+
+    .btn::before {
+      content: '▶';
+      font-size: .55rem;
+    }
+
+    .btn:hover {
+      background: #1a1400;
+      box-shadow: 4px 4px 0 #887700;
+      outline: none;
+    }
+
+    .btn:active {
+      box-shadow: 1px 1px 0 #554400;
+      transform: translate(3px, 3px);
+    }
+  </style>
+</head>
+<body>
+<div class="screen">
+
+  <header>
+    <a class="back-link" href="/">◀ BACK TO HOME</a>
+    <h1>🏆 LEADERBOARD</h1>
+    <p class="subtitle">TOP 50 RUNS &nbsp;·&nbsp; RANKED BY LEVEL × GOLD</p>
+  </header>
+
+  <div class="board-panel" id="board-wrap">
+    <p class="empty">LOADING...</p>
+  </div>
+
+  <a class="btn" href="/play">NEW GAME</a>
+
+</div>
+
+<script>
+  const medals = ['🥇', '🥈', '🥉'];
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  async function load() {
+    const wrap = document.getElementById('board-wrap');
+    try {
+      const res  = await fetch('/api/scores');
+      const data = await res.json();
+
+      if (!data || data.length === 0) {
+        wrap.innerHTML =
+          '<p class="empty">NO RUNS YET.<br>BE THE FIRST TO FINISH!</p>';
+        return;
+      }
+
+      const rows = data.map((s, i) => {
+        const medal = medals[i] ?? `#${i + 1}`;
+        const date  = new Date(s.at).toLocaleDateString(
+          undefined, { month: 'short', day: 'numeric' }
+        );
+        return `<tr class="rank-${i + 1}">
+          <td class="rank-cell">${medal}</td>
+          <td>${esc(s.name)}</td>
+          <td>${esc(s.class)}</td>
+          <td>LV.${s.level}</td>
+          <td>${s.gold}G</td>
+          <td class="score-cell">${s.score}</td>
+          <td class="date-cell">${date}</td>
+        </tr>`;
+      }).join('');
+
+      wrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>NAME</th><th>CLASS</th>
+              <th>LVL</th><th>GOLD</th><th>SCORE</th><th>DATE</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch (_) {
+      wrap.innerHTML = '<p class="empty">COULD NOT LOAD SCORES.</p>';
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>
