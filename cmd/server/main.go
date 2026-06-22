@@ -115,6 +115,7 @@ func serveWS(w http.ResponseWriter, r *http.Request) {
 	writer := &wsWriter{conn: conn, ctx: ctx}
 
 	g := game.NewWithIO(reader, writer)
+	g.SkipArt = r.URL.Query().Get("noart") == "1"
 	g.Run()
 
 	if g.Player != nil && g.Victory() {

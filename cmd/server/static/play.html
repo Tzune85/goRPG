@@ -231,8 +231,9 @@
   let history = [];
   let histIdx  = -1;
 
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+  const proto  = location.protocol === 'https:' ? 'wss' : 'ws';
+  const noart  = window.innerWidth < 640 ? '?noart=1' : '';
+  const ws = new WebSocket(`${proto}://${location.host}/ws${noart}`);
 
   ws.onopen = () => {
     status.textContent = '● ONLINE';

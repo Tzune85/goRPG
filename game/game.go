@@ -12,16 +12,17 @@ import (
 )
 
 type Game struct {
-	Player  *Player
-	World   map[string]*Room
-	Current string
-	scanner *bufio.Scanner
-	running bool
-	won     bool
-	in      io.Reader
-	out     io.Writer
-	rng     *rand.Rand
-	t       *Translator
+	Player   *Player
+	World    map[string]*Room
+	Current  string
+	SkipArt  bool
+	scanner  *bufio.Scanner
+	running  bool
+	won      bool
+	in       io.Reader
+	out      io.Writer
+	rng      *rand.Rand
+	t        *Translator
 }
 
 func (g *Game) Victory() bool { return g.won }
@@ -117,7 +118,9 @@ func (g *Game) setup() {
 		return
 	}
 	g.t = lang
-	fmt.Fprintln(g.out, g.t.T("setup_title"))
+	if !g.SkipArt {
+		fmt.Fprintln(g.out, g.t.T("setup_title"))
+	}
 
 	name, ok := g.readLine(g.t.T("setup_name_prompt"))
 	if !ok {
@@ -293,7 +296,7 @@ func (g *Game) describeRoom() {
 	desc := g.t.T("room_" + translationKey + "_desc")
 
 	fmt.Fprintf(g.out, g.t.T("room_header"), strings.ToUpper(name))
-	if art := g.World[g.Current].Art; art != "" {
+	if art := g.World[g.Current].Art; art != "" && !g.SkipArt {
 		fmt.Fprintln(g.out, strings.TrimLeft(art, "\n"))
 	}
 	fmt.Fprintln(g.out, desc)
