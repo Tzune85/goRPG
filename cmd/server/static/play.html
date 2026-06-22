@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dungeon of Shadows — Play</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #050508;
+      --gold:   #f5c400;
+      --amber:  #ff9900;
+      --red:    #e03030;
+      --green:  #00e060;
+      --white:  #e8e8e8;
+      --dim:    #555566;
+      --pixel:  'Press Start 2P', monospace;
+    }
+
+    html, body { width: 100%; height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--pixel);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: .75rem;
+      position: relative;
+      overflow: hidden;
+      image-rendering: pixelated;
+    }
+
+    /* ── Centered terminal frame ── */
+    #terminal {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1100px;
+      height: min(88dvh, 900px);
+      display: flex;
+      flex-direction: column;
+      border: 4px solid var(--gold);
+      box-shadow:
+        0 0 0 2px var(--bg),
+        0 0 0 4px var(--amber),
+        0 0 32px rgba(245,196,0,0.15);
+      background: #000;
+    }
+
+    /* CRT scanlines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 2px,
+        rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* CRT vignette */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 90% 80% at 50% 50%,
+        transparent 50%, rgba(0,0,0,0.7) 100%);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* ── Top bar ── */
+    #topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .6rem 1rem;
+      border-bottom: 4px solid var(--dim);
+      background: #000;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    #home-link {
+      color: var(--dim);
+      text-decoration: none;
+      font-size: .5rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    #home-link:hover { color: var(--gold); }
+
+    #topbar-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--gold);
+      font-size: .55rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(245,196,0,0.4);
+      white-space: nowrap;
+    }
+
+    #conn-status {
+      font-size: .5rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    #conn-status.connected    { color: var(--green); text-shadow: 0 0 6px rgba(0,224,96,0.5); }
+    #conn-status.disconnected { color: var(--red);   text-shadow: 0 0 6px rgba(224,48,48,0.5); }
+    #conn-status.connecting   { color: var(--dim); animation: blink 1s step-end infinite; }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    /* ── Output area ── */
+    #output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.2rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--green);
+      text-shadow: 0 0 4px rgba(0,224,96,0.25);
+      scroll-behavior: smooth;
+    }
+
+    /* ── Input row ── */
+    #input-row {
+      display: flex;
+      border-top: 4px solid var(--dim);
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    #prompt {
+      padding: .8rem 0 .8rem 1rem;
+      color: var(--gold);
+      user-select: none;
+      flex-shrink: 0;
+      font-size: .6rem;
+      letter-spacing: .05em;
+    }
+
+    #cmd {
+      flex: 1;
+      background: transparent;
+      color: var(--white);
+      border: none;
+      padding: .8rem .5rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      outline: none;
+      caret-color: var(--gold);
+    }
+
+    #send {
+      background: transparent;
+      color: var(--dim);
+      border: none;
+      border-left: 2px solid var(--dim);
+      padding: .8rem 1rem;
+      font-family: var(--pixel);
+      font-size: .5rem;
+      cursor: pointer;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      transition: color .05s;
+    }
+    #send:hover { color: var(--gold); }
+
+    /* ── Hint bar ── */
+    #hint {
+      padding: .3rem 1rem;
+      font-size: .45rem;
+      color: var(--dim);
+      background: #000;
+      border-top: 2px solid #1a1a22;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="terminal">
+
+    <div id="topbar">
+      <a href="/" id="home-link">⌂ HOME</a>
+      <span id="topbar-title">DUNGEON OF SHADOWS</span>
+      <span id="conn-status" class="connecting">● CONNECTING</span>
+    </div>
+
+    <div id="output"></div>
+
+    <div id="input-row">
+      <span id="prompt">&gt;&nbsp;</span>
+      <input id="cmd" type="text" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false" autofocus
+             placeholder="type a command…">
+      <button id="send">SEND</button>
+    </div>
+
+    <div id="hint">↑ ↓ history &nbsp;·&nbsp; TYPE HELP FOR COMMANDS</div>
+
+  </div>
+
+<script>
+  const output = document.getElementById('output');
+  const cmd    = document.getElementById('cmd');
+  const status = document.getElementById('conn-status');
+
+  let history = [];
+  let histIdx  = -1;
+
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}/ws`);
+
+  ws.onopen = () => {
+    status.textContent = '● ONLINE';
+    status.className = 'connected';
+    cmd.focus();
+  };
+
+  ws.onmessage = e => {
+    output.textContent += e.data;
+    output.scrollTop = output.scrollHeight;
+  };
+
+  ws.onclose = () => {
+    status.textContent = '● OFFLINE';
+    status.className = 'disconnected';
+    output.textContent += '\n\n[ CONNECTION CLOSED — REFRESH TO PLAY AGAIN ]\n';
+  };
+
+  ws.onerror = () => {
+    status.textContent = '● ERROR';
+    status.className = 'disconnected';
+  };
+
+  function submit() {
+    const v = cmd.value.trim();
+    if (!v || ws.readyState !== WebSocket.OPEN) return;
+    history.unshift(v);
+    if (history.length > 50) history.pop();
+    histIdx = -1;
+    ws.send(v + '\n');
+    cmd.value = '';
+  }
+
+  document.getElementById('send').addEventListener('click', submit);
+
+  cmd.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      submit();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      histIdx = Math.min(histIdx + 1, history.length - 1);
+      cmd.value = history[histIdx] ?? '';
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      histIdx = Math.max(histIdx - 1, -1);
+      cmd.value = histIdx === -1 ? '' : history[histIdx];
+    }
+  });
+</script>
+</body>
+</html>

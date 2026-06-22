@@ -1,9 +1,22 @@
 package game
 
 import (
+	_ "embed"
 	"math/rand"
 	"time"
 )
+
+//go:embed art/entrance.txt
+var artEntrance string
+
+//go:embed art/spider_den.txt
+var artSpiderDen string
+
+//go:embed art/boss_chamber.txt
+var artBossChamber string
+
+//go:embed art/shop.txt
+var artShop string
 
 type Room struct {
 	Name           string
@@ -15,6 +28,7 @@ type Room struct {
 	IsBoss         bool
 	IsShop         bool
 	TranslationKey string // if set, reuses another room's name/desc translations
+	Art            string
 }
 
 func BuildWorld() map[string]*Room {
@@ -22,6 +36,7 @@ func BuildWorld() map[string]*Room {
 	return map[string]*Room{
 		"entrance": {
 			Exits: map[string]string{"north": "corridor"},
+			Art:   artEntrance,
 		},
 		"corridor": {
 			Exits:     map[string]string{"south": "entrance", "north": "armory", "west": "crypt", "east": "fungal_cavern"},
@@ -46,10 +61,12 @@ func BuildWorld() map[string]*Room {
 			Exits:     map[string]string{"east": "altar"},
 			EnemyName: "Ancient Dragon",
 			IsBoss:    true,
+			Art:       artBossChamber,
 		},
 		"shop": {
 			Exits:  map[string]string{"east": "armory", "south": "crypt"},
 			IsShop: true,
+			Art:    artShop,
 		},
 		"spider_corridor": {
 			Exits: map[string]string{"west": "armory", "east": "spider_den"},
@@ -58,6 +75,7 @@ func BuildWorld() map[string]*Room {
 			Exits:     map[string]string{"west": "spider_corridor", "south": "spider_corridor2"},
 			EnemyName: "Spider Lord",
 			Items:     []int{1, 1},
+			Art:       artSpiderDen,
 		},
 		"spider_corridor2": {
 			Exits:          map[string]string{"west": "fungal_cavern", "north": "spider_den"},
