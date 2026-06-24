@@ -1,3 +1,5 @@
+.PHONY: cover test build server docker
+
 cover:
 	go test ./game/... -coverprofile=coverage.out
 	go tool cover -func=coverage.out

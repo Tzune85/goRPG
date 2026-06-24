@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"encoding/json"
@@ -12,15 +13,114 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/yuin/goldmark"
 	"goRpg/game"
 	"nhooyr.io/websocket"
 )
 
 //go:embed static
 var staticFiles embed.FS
+
+const skillPageHTML = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>skill.md — Dungeon of Shadows</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 2rem 1rem 4rem;
+    }
+    .wrapper {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #30363d;
+      font-size: .85rem;
+      color: #8b949e;
+    }
+    .topbar a { color: #58a6ff; text-decoration: none; }
+    .topbar a:hover { text-decoration: underline; }
+    h1 { font-size: 2rem; color: #f0f6fc; border-bottom: 1px solid #30363d; padding-bottom: .5rem; margin: 1.5rem 0 1rem; }
+    h2 { font-size: 1.4rem; color: #f0f6fc; border-bottom: 1px solid #21262d; padding-bottom: .3rem; margin: 2rem 0 .8rem; }
+    h3 { font-size: 1.1rem; color: #f0f6fc; margin: 1.5rem 0 .5rem; }
+    p  { margin-bottom: 1rem; }
+    a  { color: #58a6ff; }
+    code {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: .15em .4em;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: .9em;
+      color: #79c0ff;
+    }
+    pre {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      overflow-x: auto;
+      margin-bottom: 1.2rem;
+    }
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #e6edf3;
+      font-size: .9rem;
+      line-height: 1.6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.2rem;
+      font-size: .95rem;
+    }
+    th {
+      background: #161b22;
+      color: #f0f6fc;
+      padding: .5rem 1rem;
+      text-align: left;
+      border: 1px solid #30363d;
+    }
+    td {
+      padding: .5rem 1rem;
+      border: 1px solid #21262d;
+    }
+    tr:nth-child(even) td { background: #161b22; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: .3rem; }
+    hr { border: none; border-top: 1px solid #30363d; margin: 2rem 0; }
+    strong { color: #f0f6fc; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="topbar">
+    <a href="/">⌂ Dungeon of Shadows</a>
+    <span>skill.md</span>
+  </div>
+  {{BODY}}
+</div>
+</body>
+</html>`
 
 var ansiRe = regexp.MustCompile(`\x1b\[[0-9;]*[A-Za-z]`)
 
@@ -70,8 +170,10 @@ type Score struct {
 }
 
 var (
-	scoresMu sync.Mutex
-	scores   []Score
+	scoresMu    sync.Mutex
+	scores      []Score
+	store       = NewSessionStore()
+	broadcaster = NewBroadcaster()
 )
 
 func addScore(s Score) {
@@ -163,8 +265,29 @@ func newMux() (*http.ServeMux, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", serveWS)
 	mux.HandleFunc("/api/scores", serveScoresAPI)
+	mux.HandleFunc("/api/register", store.handleRegister)
+	mux.HandleFunc("/api/action", store.handleAction)
+	mux.HandleFunc("/api/state", store.handleState)
+	mux.HandleFunc("/api/events", broadcaster.handleEvents)
+	mux.HandleFunc("/watch", serveHTML("watch.html"))
 	mux.HandleFunc("/play", serveHTML("play.html"))
 	mux.HandleFunc("/scores", serveHTML("scores.html"))
+	mux.HandleFunc("/ai", serveHTML("ai.html"))
+	mux.HandleFunc("/skill.md", func(w http.ResponseWriter, r *http.Request) {
+		f, err := staticFS.Open("skill.md")
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		defer f.Close()
+		src, _ := io.ReadAll(f)
+
+		var body bytes.Buffer
+		goldmark.Convert(src, &body)
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		io.WriteString(w, strings.Replace(skillPageHTML, "{{BODY}}", body.String(), 1))
+	})
 	mux.HandleFunc("/", serveHTML("index.html"))
 	return mux, nil
 }
