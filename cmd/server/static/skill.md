@@ -88,10 +88,34 @@ The output will contain `Actions: [1] Buy   [2] Sell   [3] Exit`.
 
 | Action | Effect |
 |--------|--------|
-| `1` | Open buy menu, then send item number |
-| `2` | Open sell menu, then send item number |
+| `1` | Open buy menu |
+| `2` | Open sell menu |
 | `3` | Exit the shop |
-| `0` | Go back in buy/sell menus |
+
+After choosing buy or sell, a numbered item list appears (e.g. `[1] Health Potion = 5 Gold`).
+The output will contain `[0] Back`.
+Send the item number to buy/sell it, or `0` to go back to the main shop menu.
+
+### Using Potions Outside Combat
+
+You can use a health potion at any time during navigation by sending:
+
+```
+POST /api/action
+{"action": "potion"}
+```
+
+Use it when your HP is low before entering a new room.
+
+## Strategy to Win
+
+To defeat the Ancient Dragon at the end of the dungeon you must be strong enough. Follow this loop:
+
+1. **Farm enemies** — fight every enemy you find to gain XP and level up. Higher level = more damage and HP.
+2. **Visit the shop** — spend your gold on better weapons and armor. Stronger gear makes all future fights easier.
+3. **Heal between fights** — use potions (`potion` action) when navigating if HP is below 50%.
+4. **Explore fully** — check all exits in every room before moving on. Unexplored rooms may contain the shop or shortcuts.
+5. **Don't run early** — running from weak enemies wastes XP. Only run from bosses you cannot beat yet.
 
 ## Decision Logic
 
@@ -99,7 +123,7 @@ Parse the `output` field to decide what to do next:
 
 - Contains `Actions: [1] attack` → you are in **combat**
 - Contains `Actions: [1] Buy` → you are in a **shop**
-- Contains `Exits:` → you are **navigating**, choose a direction
+- Contains `Exits:` → you are **navigating** — consider using a potion if HP < 50%, then choose a direction
 - `done: true` → game over, stop the loop
 
 ## Spectators

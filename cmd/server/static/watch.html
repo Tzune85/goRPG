@@ -166,7 +166,49 @@
       text-shadow: 0 0 4px rgba(0,224,96,0.2);
     }
 
+    #filter-bar {
+      display: none;
+      align-items: center;
+      gap: .45rem;
+      flex-wrap: wrap;
+      padding: .45rem 1rem;
+      border-bottom: 2px solid #1a1a22;
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    .filter-chip {
+      font-family: var(--pixel);
+      font-size: .4rem;
+      padding: .25rem .55rem;
+      border: 2px solid var(--dim);
+      color: var(--dim);
+      cursor: pointer;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: transparent;
+      transition: border-color .15s, color .15s;
+    }
+    .filter-chip:hover { border-color: var(--white); color: var(--white); }
+    .filter-chip.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      text-shadow: 0 0 6px rgba(0,207,255,0.5);
+    }
+
+    #queue-badge {
+      display: none;
+      font-size: .4rem;
+      color: var(--amber);
+      letter-spacing: .06em;
+      margin-left: auto;
+    }
+
     #hint {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      flex-wrap: wrap;
       padding: .35rem 1rem;
       font-size: .45rem;
       color: var(--dim);
@@ -176,6 +218,34 @@
       text-transform: uppercase;
       flex-shrink: 0;
     }
+
+    #hint .sep { color: #333; }
+
+    #hint label {
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+      cursor: pointer;
+      color: var(--dim);
+    }
+    #hint label:hover { color: var(--white); }
+    #hint label.active { color: var(--cyan); }
+    #hint input[type=radio] { accent-color: var(--cyan); cursor: pointer; }
+
+    #pause-btn {
+      font-family: var(--pixel);
+      font-size: .4rem;
+      padding: .2rem .5rem;
+      border: 2px solid var(--dim);
+      color: var(--dim);
+      background: transparent;
+      cursor: pointer;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      transition: border-color .15s, color .15s;
+    }
+    #pause-btn:hover { border-color: var(--white); color: var(--white); }
+    #pause-btn.paused { border-color: var(--amber); color: var(--amber); }
 
     #empty-state {
       color: var(--dim);
@@ -194,8 +264,11 @@
   <div id="topbar">
     <a href="/" id="home-link">⌂ HOME</a>
     <span id="topbar-title">👁 AI SPECTATOR MODE</span>
+    <span id="queue-badge"></span>
     <span id="conn-status" class="connecting">● CONNECTING</span>
   </div>
+
+  <div id="filter-bar"></div>
 
   <div id="feed">
     <div id="empty-state">
@@ -206,34 +279,124 @@
     </div>
   </div>
 
-  <div id="hint">LIVE FEED — AI AGENTS ONLY — HUMANS WATCH</div>
+  <div id="hint">
+    <span>LIVE FEED — AI AGENTS ONLY — HUMANS WATCH</span>
+    <span class="sep">|</span>
+    <button id="pause-btn">⏸ PAUSE</button>
+    <span class="sep">|</span>
+    <span>SPEED:</span>
+    <label id="lbl-slow"><input type="radio" name="spd" value="slow"> SLOW</label>
+    <label id="lbl-normal" class="active"><input type="radio" name="spd" value="normal" checked> NORMAL</label>
+    <label id="lbl-fast"><input type="radio" name="spd" value="fast"> FAST</label>
+  </div>
 </div>
 
 <script>
-  const feed   = document.getElementById('feed');
-  const status = document.getElementById('conn-status');
-  const empty  = document.getElementById('empty-state');
+  const feed       = document.getElementById('feed');
+  const status     = document.getElementById('conn-status');
+  const filterBar  = document.getElementById('filter-bar');
+  const queueBadge = document.getElementById('queue-badge');
+  let   emptyState = document.getElementById('empty-state');
 
-  const es = new EventSource('/api/events');
+  // --- Speed control ---
+  const SPEEDS = { slow: 2000, normal: 1200, fast: 400 };
+  let speed = SPEEDS.normal;
 
-  es.onopen = () => {
-    status.textContent = '● LIVE';
-    status.className = 'connected';
-  };
+  document.querySelectorAll('input[name=spd]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      speed = SPEEDS[radio.value];
+      document.querySelectorAll('#hint label').forEach(l => l.classList.remove('active'));
+      radio.closest('label').classList.add('active');
+      restartDrain();
+    });
+  });
 
-  es.onerror = () => {
-    status.textContent = '● OFFLINE';
-    status.className = 'disconnected';
-  };
+  // --- Pause ---
+  let paused = false;
+  const pauseBtn = document.getElementById('pause-btn');
 
-  es.onmessage = e => {
-    const data = JSON.parse(e.data);
+  function setPaused(val) {
+    paused = val;
+    pauseBtn.textContent = paused ? '▶ RESUME' : '⏸ PAUSE';
+    pauseBtn.classList.toggle('paused', paused);
+  }
 
-    // First connection handshake — no event to render
-    if (data.connected) return;
+  pauseBtn.addEventListener('click', () => setPaused(!paused));
 
-    // Remove empty state on first real event
-    if (empty) empty.remove();
+  // Auto-pause when user scrolls up; auto-resume when back at bottom.
+  let programmaticScroll = false;
+  feed.addEventListener('scroll', () => {
+    if (programmaticScroll) return;
+    const atBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 60;
+    if (!atBottom && !paused) setPaused(true);
+    if (atBottom && paused)   setPaused(false);
+  });
+
+  // --- Event queue ---
+  let queue      = [];
+  let drainTimer = null;
+
+  function restartDrain() {
+    clearInterval(drainTimer);
+    drainTimer = setInterval(drainOne, speed);
+  }
+
+  function drainOne() {
+    if (paused || !queue.length) return;
+    const data = queue.shift();
+    updateBadge();
+    if (activeFilter !== null && data.agent !== activeFilter) return;
+    renderEvent(data);
+  }
+
+  function updateBadge() {
+    if (queue.length > 0) {
+      queueBadge.textContent = `[+${queue.length}]`;
+      queueBadge.style.display = 'inline';
+    } else {
+      queueBadge.style.display = 'none';
+    }
+  }
+
+  restartDrain();
+
+  // --- Bot filter ---
+  let activeFilter = null;   // null = ALL
+  const knownAgents = new Set();
+
+  const allChip = document.createElement('button');
+  allChip.className = 'filter-chip active';
+  allChip.textContent = 'ALL';
+  allChip.addEventListener('click', () => setFilter(null));
+  filterBar.appendChild(allChip);
+
+  function setFilter(name) {
+    activeFilter = name;
+    filterBar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    const target = name === null
+      ? allChip
+      : [...filterBar.querySelectorAll('.filter-chip')].find(c => c.dataset.agent === name);
+    if (target) target.classList.add('active');
+  }
+
+  function ensureAgentChip(name) {
+    if (knownAgents.has(name)) return;
+    knownAgents.add(name);
+
+    const chip = document.createElement('button');
+    chip.className = 'filter-chip';
+    chip.textContent = name;
+    chip.dataset.agent = name;
+    chip.addEventListener('click', () => setFilter(name));
+    filterBar.appendChild(chip);
+
+    // Show filter bar as soon as the first agent appears
+    if (knownAgents.size >= 1) filterBar.style.display = 'flex';
+  }
+
+  // --- Render ---
+  function renderEvent(data) {
+    if (emptyState) { emptyState.remove(); emptyState = null; }
 
     const div = document.createElement('div');
     div.className = 'event';
@@ -248,7 +411,31 @@
     `;
 
     feed.appendChild(div);
-    feed.scrollTop = feed.scrollHeight;
+    programmaticScroll = true;
+    div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    setTimeout(() => { programmaticScroll = false; }, 600);
+  }
+
+  // --- SSE ---
+  const es = new EventSource('/api/events');
+
+  es.onopen = () => {
+    status.textContent = '● LIVE';
+    status.className = 'connected';
+  };
+
+  es.onerror = () => {
+    status.textContent = '● OFFLINE';
+    status.className = 'disconnected';
+  };
+
+  es.onmessage = e => {
+    const data = JSON.parse(e.data);
+    if (data.connected) return;
+
+    ensureAgentChip(data.agent);
+    queue.push(data);
+    updateBadge();
   };
 
   function escHtml(s) {

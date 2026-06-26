@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"math/rand"
 	"net/http"
 )
 
@@ -21,7 +23,7 @@ func (s *SessionStore) handleRegister(w http.ResponseWriter, r *http.Request) {
 	agent := s.Get(key)
 	agent.Session.Step("1")       // English
 	agent.Session.Step(body.Name) // character name
-	output, _ := agent.Session.Step("1") // Warrior class — captures first room description
+	output, _ := agent.Session.Step(fmt.Sprintf("%d", rand.Intn(3)+1)) // random class 1-3
 
 	broadcaster.Publish(AgentEvent{
 		Agent:  body.Name,

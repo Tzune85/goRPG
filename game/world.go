@@ -25,8 +25,10 @@ type Room struct {
 	EnemyName      string
 	Items          []int
 	Cleared        bool
+	Visited        bool
 	IsBoss         bool
 	IsShop         bool
+	Roaming        bool
 	TranslationKey string // if set, reuses another room's name/desc translations
 	Art            string
 }
@@ -39,8 +41,8 @@ func BuildWorld() map[string]*Room {
 			Art:   artEntrance,
 		},
 		"corridor": {
-			Exits:     map[string]string{"south": "entrance", "north": "armory", "west": "crypt", "east": "fungal_cavern"},
-			EnemyName: RandomEnemy(1, rng).Name,
+			Exits:   map[string]string{"south": "entrance", "north": "armory", "west": "crypt", "east": "fungal_cavern"},
+			Roaming: true,
 		},
 		"armory": {
 			Exits:     map[string]string{"south": "corridor", "west": "shop", "east": "spider_corridor"},
@@ -69,7 +71,8 @@ func BuildWorld() map[string]*Room {
 			Art:    artShop,
 		},
 		"spider_corridor": {
-			Exits: map[string]string{"west": "armory", "east": "spider_den"},
+			Exits:   map[string]string{"west": "armory", "east": "spider_den"},
+			Roaming: true,
 		},
 		"spider_den": {
 			Exits:     map[string]string{"west": "spider_corridor", "south": "spider_corridor2"},
@@ -80,6 +83,7 @@ func BuildWorld() map[string]*Room {
 		"spider_corridor2": {
 			Exits:          map[string]string{"west": "fungal_cavern", "north": "spider_den"},
 			TranslationKey: "spider_corridor",
+			Roaming:        true,
 		},
 		"fungal_cavern": {
 			Exits:     map[string]string{"west": "corridor", "east": "spider_corridor2"},

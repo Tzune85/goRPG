@@ -3,7 +3,6 @@ package game
 import (
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 )
 
@@ -84,20 +83,11 @@ func (p *Player) Status(t *Translator) string {
 }
 
 func (p *Player) DetailedStatus(t *Translator) string {
-	inv := t.T("status_items_empty")
-	if len(p.Items) > 0 {
-		names := make([]string, len(p.Items))
-		for i, id := range p.Items {
-			names[i] = t.T("item_" + strconv.Itoa(id) + "_name")
-		}
-		inv = strings.Join(names, ", ")
-	}
 	return fmt.Sprintf(t.T("status_sheet"),
 		p.Name, t.T("class_"+strings.ToLower(string(p.Class))),
 		p.Level, p.XP, p.Level*100,
 		p.HP, p.MaxHP,
 		p.Attack,
 		p.Gold,
-		inv,
 	)
 }

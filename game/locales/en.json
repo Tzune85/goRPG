@@ -17,7 +17,7 @@
   "nav_no_exit": "You can't go %s from here.",
   "nav_found_item": "You found: %s!",
 
-  "cmd_quit_guard": "Quitting already, adventurer...coward?\n [1] Yes, I give up\n [2] No! I can do this!",
+  "cmd_quit_guard": "Already quitting, adventurer? Coward.\n [1] Yes, I give up\n [2] No! I can do this!",
   "cmd_farewell": "Farewell, \"adventurer\"...",
   "cmd_unknown": "Unknown command '%s'. Type 'help' for commands.",
   "cmd_help": "\nCommands:\n  go [north|south|east|west]   Move\n  n / s / e / w                Shortcut directions\n  look  (l)                    Describe current room\n  inventory  (i)               Show items\n  status                       Show character sheet\n  help  (?)                    Show this help\n  quit  (q)                    Exit",
@@ -28,7 +28,7 @@
 
   "status_level_up": "\n⚡ LEVEL UP! Now level %d! (HP: %d, ATK: %d)\n",
   "status_bar": "[ %s the %s | HP %d/%d | Gold %d | Lv.%d ]",
-  "status_sheet": "\n=== CHARACTER SHEET ===\nName   : %s\nClass  : %s\nLevel  : %d (XP: %d/%d)\nHP     : %d / %d\nAttack : %d\nGold   : %d\nItems  : %s\n=======================",
+  "status_sheet": "\n=== CHARACTER SHEET ===\nName   : %s\nClass  : %s\nLevel  : %d (XP: %d/%d)\nHP     : %d / %d\nAttack : %d\nGold   : %d\n=======================",
   "status_items_empty": "empty",
 
   "game_over": "\nYou have fallen in the dungeon. GAME OVER.",
@@ -86,6 +86,15 @@
   "room_spider_den_desc": "This chamber is choked with layers of webbing, stretched like funeral drapes between floor and ceiling.\nPale cocoons dangle from the arches, a few still trembling almost imperceptibly.\nThe floor is a carpet of dried carcasses, bleached bones, and shattered carapaces.\nThen, somewhere above you, comes a faint tear in the silk — followed by the growing tick of innumerable legs in motion.",
   "room_fungal_cavern_name": "Fungal Cavern",
   "room_fungal_cavern_desc": "The dungeon stone breaks into a clammy, suffocating cavern where giant ash-colored mushrooms thrust from the ground like twisted pillars.\nA haze of bioluminescent spores drifts through the air, washing everything in sickly greens and unnatural violets.\nNarrow paths and moss-slick stone bridges link slick terraces where patches of mold throb faintly.\nEach breath pricks at your throat: a mild but persistent poison seeping into your lungs.",
+
+  "room_already_visited": "You have already passed through here.",
+  "room_corridor_cleared_desc": "The creature's body lies still now, slumped against the soot-blackened wall.\nThe echo that once hung in the corridor has faded into silence.",
+  "room_armory_cleared_desc": "The fallen creature lies among shattered racks, its blood mingling with rust.\nThe forgotten crest upon the banner still seems to watch from the dark.",
+  "room_crypt_cleared_desc": "The creature lies motionless beside an open sarcophagus.\nThe displaced lid feels almost like a prophecy fulfilled.",
+  "room_altar_cleared_desc": "The creature's blood darkens the altar, merging with stains from older rites.\nThe cold violet light still burns, indifferent to all.",
+  "room_spider_den_cleared_desc": "The swollen body of the Spider Lord lies on the ground, drowned in a pool of green blood.\nThe webs overhead hang motionless now — their master has fallen.",
+  "room_fungal_cavern_cleared_desc": "The creature's corpse is already half-buried beneath a pallid veil of mycelium.\nSpores drift through the air, unaware of its stillness.",
+  "room_boss_chamber_cleared_desc": "The Ancient Dragon has been slain. Its colossal body lies coiled among the treasure, cold and still.\nEven the gold seems to hold its breath.\n\nGAME OVER",
 
   "item_1_name": "Health Potion",
   "item_2_name": "Vorpal Sword +5",

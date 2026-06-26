@@ -29,7 +29,7 @@
 
   "status_level_up": "\n⚡ LIVELLO SU! Ora sei al livello %d! (HP: %d, ATK: %d)\n",
   "status_bar": "[ %s - %s | HP %d/%d | Oro %d | Lv.%d ]",
-  "status_sheet": "\n=== SCHEDA PERSONAGGIO ===\nNome    : %s\nClasse  : %s\nLivello : %d (XP: %d/%d)\nHP      : %d / %d\nAttacco : %d\nOro     : %d\nOggetti : %s\n=========================",
+  "status_sheet": "\n=== SCHEDA PERSONAGGIO ===\nNome    : %s\nClasse  : %s\nLivello : %d (XP: %d/%d)\nHP      : %d / %d\nAttacco : %d\nOro     : %d\n=========================",
   "status_items_empty": "vuoto",
 
   "game_over": "\nSei morto eroicamente. GAME OVER.",
@@ -87,6 +87,15 @@
   "room_spider_den_desc": "Questa camera è soffocata da strati di ragnatele, tese come drappi funebri tra pavimento e soffitto.\nBozzoli bianchi pendono dalle volte, alcuni ancora impercettibilmente tremanti.\nIl pavimento è un tappeto di carcasse secche, ossa sbiancate e carapaci spezzati.\nPoi, da qualche parte sopra di te, si ode un lieve strappo nella seta — seguito dal ticchettio crescente di innumerevoli zampe in movimento.",
   "room_fungal_cavern_name": "Caverna Fungina",
   "room_fungal_cavern_desc": "La pietra del dungeon si apre in una caverna umida e soffocante, dove enormi funghi color cenere spuntano dal terreno come colonne distorte.\nUna foschia di spore bioluminescenti aleggia nell'aria, tingendo tutto di verdi malati e viola innaturali.\nPassaggi stretti e ponti di roccia coperti di muschio collegano terrazze scivolose, dove chiazze di muffa pulsano debolmente.\nOgni respiro pizzica la gola: un veleno lieve, ma insistente, si insinua nei polmoni.",
+
+  "room_already_visited": "Sei già passato di qui.",
+  "room_corridor_cleared_desc": "Il corpo della creatura giace ora immobile, riverso contro la parete annerita dalla fuliggine.\nL'eco che prima aleggiava nel corridoio si è dissolto nel silenzio.",
+  "room_armory_cleared_desc": "La creatura caduta giace tra le rastrelliere spezzate, il suo sangue mescolato alla ruggine.\nLo stemma dimenticato sullo stendardo sembra ancora vegliare nel buio.",
+  "room_crypt_cleared_desc": "La creatura giace immobile accanto a un sarcofago aperto.\nIl coperchio scostato sembra quasi un presagio compiuto.",
+  "room_altar_cleared_desc": "Il sangue della creatura oscura l'altare, confondendosi con le macchie di riti più antichi.\nLa fredda luce viola arde ancora, indifferente a ogni cosa.",
+  "room_spider_den_cleared_desc": "Il corpo gonfio del Signore dei Ragni giace a terra, immerso in una pozza di sangue verde.\nLe tele sospese sopra di te restano immobili ora — il loro padrone è caduto.",
+  "room_fungal_cavern_cleared_desc": "Il cadavere della creatura è già semisepolto sotto un manto di micelio pallido.\nLe spore continuano a fluttuare, ignare della sua immobilità.",
+  "room_boss_chamber_cleared_desc": "L'Antico Drago è stato abbattuto. Il suo immenso corpo giace arrotolato tra il tesoro, freddo e immobile.\nPersino l'oro pare trattenere il respiro.\n\nGAME OVER",
 
   "item_1_name": "Pozione della Salute",
   "item_2_name": "Spada Vorpal +5",

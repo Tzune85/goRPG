@@ -104,6 +104,28 @@ func TestItemsNotPickedUpOnEscape(t *testing.T) {
 	}
 }
 
+func TestRoamingRoomNeverCleared(t *testing.T) {
+	g := New()
+	g.out = io.Discard
+	g.rng = rand.New(rand.NewSource(42))
+	g.Player = NewPlayer("Test", God)
+
+	// enough input to win any combat across multiple visits
+	reader := strings.NewReader(strings.Repeat("1\n", 100))
+	g.in = reader
+	g.scanner = bufio.NewScanner(reader)
+
+	for i := range 10 {
+		g.Current = "armory"
+		g.move("east") // into spider_corridor (Roaming: true)
+
+		if g.World["spider_corridor"].Cleared {
+			t.Errorf("roaming room was cleared on visit %d", i+1)
+			return
+		}
+	}
+}
+
 func TestMoveBoss(t *testing.T) {
 	var buf bytes.Buffer
 	game := New()
