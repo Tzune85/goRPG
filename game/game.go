@@ -130,7 +130,7 @@ func (g *Game) setup() {
 		name = g.t.T("setup_default_name")
 	}
 
-	class, ok := g.chooseClass()
+	class, ok := g.chooseClass(name)
 	if !ok {
 		return
 	}
@@ -140,8 +140,8 @@ func (g *Game) setup() {
 	g.describeRoom()
 }
 
-func (g *Game) chooseClass() (Class, bool) {
-	fmt.Fprintln(g.out, g.t.T("setup_choose_class"))
+func (g *Game) chooseClass(name string) (Class, bool) {
+	fmt.Fprintln(g.out, g.t.T("setup_choose_class", name))
 	fmt.Fprintln(g.out, g.t.T("setup_class_warrior"))
 	fmt.Fprintln(g.out, g.t.T("setup_class_mage"))
 	fmt.Fprintln(g.out, g.t.T("setup_class_thief"))

@@ -2,7 +2,7 @@
     "setup_title": "\n╔══════════════════════════════════════╗\n║       DUNGEON OF SHADOWS  v1.0       ║\n║        A Text Adventure RPG          ║\n╚══════════════════════════════════════╝",
   "setup_name_prompt": "Enter your name, adventurer: ",
   "setup_default_name": "Hero",
-  "setup_choose_class": "\nChoose your class:",
+  "setup_choose_class": "\nChoose your class, %s:",
   "setup_class_warrior": "  [1] Warrior — 100 HP, 15 ATK",
   "setup_class_mage": "  [2] Mage    —  70 HP, 25 ATK",
   "setup_class_thief": "  [3] Thief   —  85 HP, 18 ATK",

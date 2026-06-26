@@ -119,7 +119,7 @@ func TestChooseClass(t *testing.T) {
 			reader := strings.NewReader(tc.input)
 			game.in = reader
 			game.scanner = bufio.NewScanner(reader)
-			class, ok := game.chooseClass()
+			class, ok := game.chooseClass("Hero")
 			if !ok || class != tc.expected {
 				t.Errorf("input %q: expected %v, got %v (ok=%v)", tc.input, tc.expected, class, ok)
 			}
@@ -136,7 +136,7 @@ func TestChoseClassInvalid(t *testing.T) {
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
-	game.chooseClass()
+	game.chooseClass("Hero")
 	output := buf.String()
 
 	if !strings.Contains(output, "Please choose 1, 2, or 3.") {
