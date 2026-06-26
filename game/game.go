@@ -12,17 +12,17 @@ import (
 )
 
 type Game struct {
-	Player   *Player
-	World    map[string]*Room
-	Current  string
-	SkipArt  bool
-	scanner  *bufio.Scanner
-	running  bool
-	won      bool
-	in       io.Reader
-	out      io.Writer
-	rng      *rand.Rand
-	t        *Translator
+	Player  *Player
+	World   map[string]*Room
+	Current string
+	SkipArt bool
+	scanner *bufio.Scanner
+	running bool
+	won     bool
+	in      io.Reader
+	out     io.Writer
+	rng     *rand.Rand
+	t       *Translator
 }
 
 func (g *Game) Victory() bool { return g.won }
@@ -207,12 +207,15 @@ func (g *Game) handleInput(raw string) {
 }
 
 func (g *Game) quit() {
+	fmt.Fprintln(g.out)
 	fmt.Fprintln(g.out, g.t.T("cmd_quit_guard"))
 	choice, ok := g.readLine("> ")
 	if !ok || choice != "1" {
 		return
 	}
+	fmt.Fprintln(g.out)
 	fmt.Fprintln(g.out, g.t.T("cmd_farewell"))
+	fmt.Fprintln(g.out)
 	g.running = false
 }
 
@@ -245,14 +248,41 @@ func (g *Game) move(direction string) {
 		RunShop(g.Player, g.readLine, g.out, g.t)
 	}
 
-	if next.EnemyName != "" && !next.Cleared {
+	if next.Roaming && g.rng.Float64() < 0.3 {
+		enemy := RandomEnemy(1, g.rng)
+		fmt.Fprintln(g.out, "\nxxx|===============-  *  -===============|xxx")
+		fmt.Fprintln(g.out)
+		won, completed := RunCombat(g.Player, &enemy, g.readLine, g.out, g.rng, g.t)
+
+		if !completed {
+			return
+		}
+
+		fmt.Fprintln(g.out, "xxx|===============-  *  -===============|xxx")
+		fmt.Fprintln(g.out)
+
+		if !g.Player.IsAlive() {
+			return
+		}
+
+		if won {
+			fmt.Fprintln(g.out, g.t.T("game_xp_gold", enemy.XP, enemy.Gold))
+			g.Player.AddXP(enemy.XP, g.out, g.t)
+			g.Player.Gold += enemy.Gold
+		}
+	} else if next.EnemyName != "" && !next.Cleared {
 		enemy, found := NewEnemy(next.EnemyName)
 		if found {
+			fmt.Fprintln(g.out, "\nxxx|===============-  *  -===============|xxx")
+			fmt.Fprintln(g.out)
 			won, completed := RunCombat(g.Player, &enemy, g.readLine, g.out, g.rng, g.t)
 
 			if !completed {
 				return
 			}
+
+			fmt.Fprintln(g.out, "xxx|===============-  *  -===============|xxx")
+			fmt.Fprintln(g.out)
 
 			if !g.Player.IsAlive() {
 				return
@@ -263,6 +293,10 @@ func (g *Game) move(direction string) {
 				fmt.Fprintln(g.out, g.t.T("game_xp_gold", enemy.XP, enemy.Gold))
 				g.Player.AddXP(enemy.XP, g.out, g.t)
 				g.Player.Gold += enemy.Gold
+
+				fmt.Fprintln(g.out)
+				g.describeRoomFull(false)
+				next.Visited = true
 
 				if next.IsBoss {
 					g.victory()
@@ -283,6 +317,10 @@ func (g *Game) move(direction string) {
 }
 
 func (g *Game) describeRoom() {
+	g.describeRoomFull(true)
+}
+
+func (g *Game) describeRoomFull(showName bool) {
 	var exits []string
 	for dir := range g.World[g.Current].Exits {
 		exits = append(exits, g.t.T("dir_"+dir))
@@ -293,14 +331,28 @@ func (g *Game) describeRoom() {
 		translationKey = k
 	}
 	name := g.t.T("room_" + translationKey + "_name")
-	desc := g.t.T("room_" + translationKey + "_desc")
 
-	fmt.Fprintf(g.out, g.t.T("room_header"), strings.ToUpper(name))
-	if art := g.World[g.Current].Art; art != "" && !g.SkipArt {
+	var desc string
+	if g.World[g.Current].Cleared {
+		desc = g.t.T("room_" + translationKey + "_cleared_desc")
+		if g.World[g.Current].Visited {
+			desc += "\n\n" + g.t.T("room_already_visited")
+		}
+	} else {
+		desc = g.t.T("room_" + translationKey + "_desc")
+	}
+
+	if showName {
+		fmt.Fprintf(g.out, g.t.T("room_header"), strings.ToUpper(name))
+	}
+	if art := g.World[g.Current].Art; art != "" && !g.SkipArt && !g.World[g.Current].Cleared {
 		fmt.Fprintln(g.out, strings.TrimLeft(art, "\n"))
 	}
 	fmt.Fprintln(g.out, desc)
-	fmt.Fprintf(g.out, g.t.T("room_exits"), strings.Join(exits, " | "))
+	room := g.World[g.Current]
+	if !(room.IsBoss && room.Cleared) {
+		fmt.Fprintf(g.out, g.t.T("room_exits"), strings.Join(exits, " | "))
+	}
 }
 
 func (g *Game) showInventory() {

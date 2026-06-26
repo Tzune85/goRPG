@@ -29,8 +29,8 @@ func TestHandleInputQuit(t *testing.T) {
 	game.handleInput("quit")
 	output := buf.String()
 
-	if !strings.Contains(output, "Quitting") {
-		t.Errorf("expected guard, got : %s", output)
+	if !strings.Contains(output, "Already quitting") {
+		t.Errorf("expected Already quitting guard, got : %s", output)
 	}
 	if !game.running {
 		t.Error("expected running to be true after guard")

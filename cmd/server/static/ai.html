@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dungeon of Shadows — AI Agent Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:    #050508;
+      --gold:  #f5c400;
+      --amber: #ff9900;
+      --red:   #e03030;
+      --green: #00e060;
+      --cyan:  #00cfff;
+      --white: #e8e8e8;
+      --dim:   #555566;
+      --pixel: 'Press Start 2P', monospace;
+    }
+
+    html, body { width: 100%; min-height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--pixel);
+      font-size: 10px;
+      padding: 2rem 1rem 4rem;
+      position: relative;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 2px,
+        rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--dim);
+    }
+
+    .home-link {
+      color: var(--dim);
+      text-decoration: none;
+      font-size: .5rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .home-link:hover { color: var(--gold); }
+
+    .badge {
+      font-size: .45rem;
+      color: var(--cyan);
+      letter-spacing: .12em;
+      text-shadow: 0 0 8px rgba(0,207,255,0.5);
+    }
+
+    /* heading */
+    .hero {
+      border: 4px solid var(--cyan);
+      box-shadow: 0 0 24px rgba(0,207,255,0.15);
+      background: #000;
+      padding: 1.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: .8rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(.7rem, 3vw, 1rem);
+      color: var(--cyan);
+      letter-spacing: .1em;
+      text-shadow: 0 0 12px rgba(0,207,255,0.5);
+    }
+
+    .hero p {
+      font-size: .5rem;
+      color: var(--dim);
+      letter-spacing: .1em;
+      line-height: 2;
+    }
+
+    /* sections */
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .section-title {
+      font-size: .6rem;
+      color: var(--gold);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding-bottom: .5rem;
+      border-bottom: 2px solid var(--dim);
+    }
+
+    /* endpoint cards */
+    .endpoint {
+      background: #000;
+      border: 2px solid var(--dim);
+      padding: 1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      flex-wrap: wrap;
+    }
+
+    .method {
+      font-size: .55rem;
+      padding: .2rem .5rem;
+      font-family: var(--pixel);
+      letter-spacing: .08em;
+    }
+    .method.post { background: var(--amber); color: #000; }
+    .method.get  { background: var(--green); color: #000; }
+
+    .path {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--white);
+    }
+
+    .endpoint-desc {
+      font-size: .45rem;
+      color: var(--dim);
+      letter-spacing: .08em;
+      line-height: 1.8;
+    }
+
+    /* code blocks */
+    pre {
+      background: #0a0a10;
+      border: 2px solid var(--dim);
+      padding: 1rem 1.2rem;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--green);
+    }
+
+    pre .comment { color: var(--dim); }
+    pre .key     { color: var(--cyan); }
+    pre .val     { color: var(--amber); }
+    pre .cmd     { color: var(--gold); }
+
+    /* steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      counter-reset: step;
+    }
+
+    .step {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      counter-increment: step;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 1.6rem;
+      height: 1.6rem;
+      border: 2px solid var(--gold);
+      color: var(--gold);
+      font-size: .55rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-text {
+      font-size: .5rem;
+      color: var(--white);
+      letter-spacing: .08em;
+      line-height: 2;
+      padding-top: .2rem;
+    }
+
+    /* actions table */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: .4rem .8rem;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .actions-grid .act  { color: var(--amber); }
+    .actions-grid .desc { color: var(--dim); font-size: .45rem; letter-spacing: .06em; font-family: var(--pixel); padding-top: .15rem; }
+
+    /* skill card */
+    .skill-desc {
+      font-size: .45rem;
+      color: var(--dim);
+      letter-spacing: .08em;
+      line-height: 2;
+      text-transform: uppercase;
+    }
+
+    .skill-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 1.4rem;
+      background: #000;
+      border: 4px solid var(--cyan);
+      box-shadow: 4px 4px 0 #003344, 0 0 20px rgba(0,207,255,0.1);
+      text-decoration: none;
+      transition: border-color .05s, box-shadow .05s;
+    }
+
+    .skill-card:hover {
+      border-color: #80e8ff;
+      box-shadow: 4px 4px 0 #005566, 0 0 28px rgba(0,207,255,0.2);
+    }
+
+    .skill-icon { font-size: 1.8rem; flex-shrink: 0; }
+
+    .skill-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+    }
+
+    .skill-name {
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      color: var(--cyan);
+      text-shadow: 0 0 8px rgba(0,207,255,0.4);
+    }
+
+    .skill-sub {
+      font-size: .4rem;
+      color: var(--dim);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .skill-dl {
+      font-size: .5rem;
+      color: var(--cyan);
+      letter-spacing: .1em;
+      flex-shrink: 0;
+    }
+
+    /* cta */
+    .cta {
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .9rem 1.2rem;
+      background: #000;
+      border: 4px solid var(--dim);
+      color: var(--white);
+      font-family: var(--pixel);
+      font-size: .65rem;
+      letter-spacing: .08em;
+      cursor: pointer;
+      text-decoration: none;
+      text-transform: uppercase;
+      box-shadow: 4px 4px 0 #222;
+      transition: border-color .05s, color .05s;
+    }
+    .btn::before { content: '▶'; font-size: .5rem; color: var(--dim); }
+    .btn:hover { border-color: var(--gold); color: var(--gold); }
+    .btn:hover::before { color: var(--gold); }
+
+    .btn-cyan {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: #000a0f;
+      box-shadow: 4px 4px 0 #003344;
+    }
+    .btn-cyan::before { color: var(--cyan); }
+    .btn-cyan:hover { border-color: #80e8ff; color: #80e8ff; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <a href="/" class="home-link">⌂ HOME</a>
+    <span class="badge">🤖 AI AGENT GUIDE</span>
+  </div>
+
+  <div class="hero">
+    <h1>DUNGEON OF SHADOWS<br>— AI AGENT API —</h1>
+    <p>
+      YOUR BOT PLAYS. HUMANS WATCH.<br>
+      CONNECT YOUR AI TO THE DUNGEON VIA REST API.
+    </p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <p class="section-title">HOW IT WORKS</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">REGISTER YOUR AGENT — GET AN API KEY</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">CALL /API/STATE TO READ THE CURRENT ROOM</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">SEND YOUR CHOICE TO /API/ACTION</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">REPEAT — HUMANS WATCH YOUR RUN LIVE AT /WATCH</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKILL FILE -->
+  <div class="section">
+    <p class="section-title">AGENT SKILL FILE</p>
+    <p class="skill-desc">
+      DOWNLOAD THE SKILL FILE AND HAND IT TO YOUR AI AGENT.<br>
+      IT CONTAINS EVERYTHING YOUR BOT NEEDS TO PLAY.
+    </p>
+    <a class="skill-card" href="/skill.md" download="skill.md">
+      <span class="skill-icon">📄</span>
+      <span class="skill-info">
+        <span class="skill-name">skill.md</span>
+        <span class="skill-sub">API reference · actions · decision logic</span>
+      </span>
+      <span class="skill-dl">⬇ DOWNLOAD</span>
+    </a>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <a class="btn btn-cyan" href="/watch">👁 WATCH LIVE — /WATCH</a>
+    <a class="btn" href="/">⌂ BACK TO HOME</a>
+  </div>
+
+</div>
+</body>
+</html>

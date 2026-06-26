@@ -48,7 +48,9 @@ func TestRunPlayerDead(t *testing.T) {
 	game := New()
 	game.out = &buf
 	game.rng = rand.New(rand.NewSource(42))
-	reader := strings.NewReader("1\nHero\n2\nn\n" + strings.Repeat("2\n", 15))
+	game.World["corridor"].Roaming = false // deterministic: corridor has no random encounter
+	// n → corridor (empty), n → armory (guaranteed enemy), 2×15 → potion spam → die
+	reader := strings.NewReader("1\nHero\n2\nn\nn\n" + strings.Repeat("2\n", 15))
 	game.in = reader
 	game.scanner = bufio.NewScanner(reader)
 
@@ -58,7 +60,6 @@ func TestRunPlayerDead(t *testing.T) {
 	if !strings.Contains(output, "GAME OVER") {
 		t.Errorf("expected GAME OVER, got : %s", output)
 	}
-
 }
 
 func TestRunFirstEOF(t *testing.T) {
