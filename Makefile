@@ -6,7 +6,7 @@ cover:
 	go tool cover -html=coverage.out -o coverage.html
 
 test:
-	go test ./game/... -v
+	go test ./... -v
 
 build:
 	go build -o goRpg ./...
